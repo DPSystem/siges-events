@@ -1,0 +1,48 @@
+@page "/inscriptos"
+
+<MudContainer>
+    <MudCard>
+        <MudCardContent>
+            <MudText Typo="Typo.h5">Lista de Inscriptos</MudText>
+            <MudTable Items="@inscriptos" Dense="true">
+                <HeaderContent>
+                    <MudTh>Nombre</MudTh>
+                    <MudTh>Email</MudTh>
+                    <MudTh>Curso</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="item" >
+                    <MudTd>@item.Nombre</MudTd>
+                    <MudTd>@item.Email</MudTd>
+                    <MudTd>@item.Curso</MudTd>
+                </RowTemplate>
+            </MudTable>
+            <MudButton OnClick="ExportToExcel" StartIcon="@Icons.Material.Filled.Download" Color="Color.Primary">Exportar a Excel</MudButton>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private List<Inscripto> inscriptos = new();
+
+      protected override async Task OnInitializedAsync()
+    {
+        // Aquí cargarías los inscriptos desde un servicio o base de datos
+        inscriptos = new List<Inscripto>
+        {
+            new Inscripto { Nombre = "Juan Perez", Email = "juan@email.com", Curso = "Blazor Avanzado" },
+            new Inscripto { Nombre = "Ana Gomez", Email = "ana@email.com", Curso = "Introducción a MudBlazor" }
+        };
+    }
+
+    private void ExportToExcel()
+    {
+        // Lógica para exportar la lista a Excel
+    }
+
+    private class Inscripto
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Curso { get; set; } = string.Empty;
+    }
+}

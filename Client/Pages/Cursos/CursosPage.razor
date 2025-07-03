@@ -1,0 +1,115 @@
+@page "/cursos"
+
+<MudPaper Elevation="3" Class="d-flex gap-2 flex-grow-1 pa-2 my-3
+border-b-4 border-solid mud-border-info align-center justify-space-between"
+>
+    <div class="d-flex align-center gap-2 flex-grow-1">
+        <MudIcon Icon="@Icons.Material.Filled.Book"/>
+        <MudText Typo="Typo.h5">Cursos Disponibles</MudText>
+    </div>
+</MudPaper>
+
+<MudContainer>
+    <MudGrid>
+        @* <MudItem xs="12">
+            <MudText Typo="Typo.h4">Cursos Disponibles</MudText>
+        </MudItem> *@
+
+        @foreach (var curso in Cursos)
+        {
+            <MudItem xs="12" sm="6" md="6">
+                @* <MudCard Style="width: 100%; max-width: 350px; height: 350px; display: flex; flex-direction: column;">
+                    <MudCardMedia Image="@curso.ImagenUrl" Height="300" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">@curso.Nombre</MudText>
+                        <MudText>@curso.Descripcion</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Color="Color.Primary" OnClick="() => Inscribirse(curso)">Inscribirse</MudButton>
+                    </MudCardActions>
+                </MudCard>*@
+                <MudCard> 
+    <MudCardMedia Image="@curso.ImagenUrl" Height="400" />
+        <MudCardContent>
+                        <MudText Typo="Typo.h6">@curso.Nombre</MudText>
+                        <MudText>@curso.Descripcion</MudText>
+                    </MudCardContent>
+        <MudCardActions>
+        <MudButton Color="Color.Primary" OnClick="() => Inscribirse(curso)">Inscribirse</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="VerInscriptos">Ver Inscriptos</MudButton>
+    </MudCardActions>
+</MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+<MudMessageBox @ref="_mudMessageBox">
+    <MessageContent>
+        
+    <MudCardHeader>Inscripción al Curso</MudCardHeader>
+    <MudCardContent>
+        <MudTextField Label="Nombre" @bind-Value="_nombre" Required="true" />
+        <MudTextField Label="Email" @bind-Value="_email" Required="true" />
+    </MudCardContent>
+    @* <MudCardActions>
+        <MudButton Color="Color.Primary" OnClick="ConfirmarInscripcion">Confirmar</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="CancelarInscripcion">Cancelar</MudButton>
+    </MudCardActions> *@
+    </MessageContent>
+    <YesButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ConfirmarInscripcion">Confirmar</MudButton>
+    </YesButton>
+    <CancelButton>
+        <MudButton Color="Color.Error" OnClick="CancelarInscripcion">Cancelar</MudButton>
+    </CancelButton>
+</MudMessageBox>
+
+
+@inject NavigationManager Navigation
+@code {
+    private MudMessageBox _mudMessageBox = new MudMessageBox();
+    private List<Curso> Cursos = new() {
+        new Curso { Nombre = "Curso Blazor", Descripcion = "Aprende Blazor desde cero", ImagenUrl = "https://fileserver.secsantiago.com.ar/api/v1/download/cursos_atencioncliente.jpeg" },
+        new Curso { Nombre = "Curso MudBlazor", Descripcion = "Diseño avanzado con MudBlazor", ImagenUrl = "https://fileserver.secsantiago.com.ar/api/v1/download/cursos_competenciasdigitales.jpeg" },
+        new Curso { Nombre = "Curso MudBlazor", Descripcion = "Diseño avanzado con MudBlazor", ImagenUrl = "https://fileserver.secsantiago.com.ar/api/v1/download/cursos_ecomerce.jpeg" },
+        new Curso { Nombre = "Curso MudBlazor", Descripcion = "Diseño avanzado con MudBlazor", ImagenUrl = "https://fileserver.secsantiago.com.ar/api/v1/download/cursos_liquidacionhaberes.jpeg" },
+        new Curso { Nombre = "Curso MudBlazor", Descripcion = "Diseño avanzado con MudBlazor", ImagenUrl = "https://fileserver.secsantiago.com.ar/api/v1/download/cursos_ia.jpeg" },
+        new Curso { Nombre = "Curso MudBlazor", Descripcion = "Diseño avanzado con MudBlazor", ImagenUrl = "https://fileserver.secsantiago.com.ar/api/v1/download/cursos_office.jpeg" },
+    };
+
+    private bool _mostrarDialogoInscripcion;
+    private string _nombre = String.Empty;
+    private string _email= String.Empty;
+
+    private async Task Inscribirse(Curso curso)
+    {
+        Console.WriteLine("insc {}");
+         bool? result = await _mudMessageBox.ShowAsync();
+        @* _state = result is null ? "Canceled" : "Deleted!"; *@
+        StateHasChanged();
+        _mostrarDialogoInscripcion = true;
+    }
+
+    private void ConfirmarInscripcion()
+    {
+        _mostrarDialogoInscripcion = false;
+    }
+
+    private void CancelarInscripcion()
+    {
+        _mostrarDialogoInscripcion = false;
+    }
+
+    private void VerInscriptos()
+    {
+        Navigation.NavigateTo("/inscriptos");
+    }
+
+    public class Curso
+    {
+        public string? Nombre { get; set; }
+        public string? Descripcion { get; set; }
+        public string? ImagenUrl { get; set; }
+    }
+}
