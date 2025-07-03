@@ -1,75 +1,62 @@
-# Archivos generados por Visual Studio
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-*.vssscc
-*.vspscc
-*.ncb
-*.sdf
-*.opensdf
-*.ilk
-*.pdb
-*.tlog
-*.idb
-*.cachefile
-*.log
-[Bb]in
-[Oo]bj
-_ReSharper.*
-*.DotSettings.user
-
-# Archivos de paquetes NuGet
-packages/
+### .NET ###
+# Build results
+[Bb]in/
+[Oo]bj/
+*.msi
 *.nupkg
 
-# Archivos de compilación
-*.exe
-*.dll
-*.appx
-*.appxbundle
-*.appxupload
-*.appinstaller
-*.pfx
-*.cer
-*.vsix
-*.apphost.exe
+# Debug folders
+**/[Bb]in/[Dd]ebug/
+**/[Bb]in/[Rr]elease/
+**/[Bb]in/[Dd]ebug/net8.0/
+**/[Bb]in/[Rr]elease/net8.0/
 
-# Archivos de caché del sistema operativo
-[Tt]humbs.db
-*.DS_Store
+# User-specific files
+*.user
+*.suo
+*.userprefs
+*.vsp
+*.pidb
 
-# Archivos de prueba
-TestResults/
+# IDE/Editor files
+.vs/
+.idea/
+*.sw?
+*.code-workspace
+
+# Dependency directories
+packages/
+[Nn]u[Gg]et/
+*.nuget.props
+*.nuget.targets
+
+# Runtime and logs
+**/logs/
+*.log
+*.cache
+*.pid
+
+# Test results
+[Tt]est[Rr]esult*/
 *.trx
 
-# Archivos de publicación
-Publish/
-*.pubxml
-*.azurePubxml
+# Local development settings
+appsettings.Development.json
+appsettings.Local.json
+launchSettings.json
 
-# Archivos específicos del proyecto
-Client/bin/
-Client/obj/
-Client/publish/
-Server/bin/
-Server/obj/
-Server/publish/
-Shared/bin/
-Shared/obj/
-Data/bin/
-Data/obj/
+# macOS
+.DS_Store
 
-# Archivos de herramientas
-.vs/
+# VS Code
 .vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 
-# Archivos de contenedor Docker
-docker-compose.*.yml
-.dockerignore
+# Rider
+.idea/
+*.sln.iml
 
-# Archivos de configuración de Azure
-*.azurewebsites.net
-*.publishsettings
-ServiceConfiguration.*.cscfg
-*.bliss.config
+# Azure Functions
+func/
