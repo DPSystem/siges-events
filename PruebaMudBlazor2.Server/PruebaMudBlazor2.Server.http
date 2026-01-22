@@ -1,0 +1,6 @@
+@PruebaMudBlazor2.Server_HostAddress = http://localhost:5139
+
+GET {{PruebaMudBlazor2.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

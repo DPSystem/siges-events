@@ -1,0 +1,129 @@
+﻿@* @page "/printers" *@
+@using MudBlazor
+@inject HttpClient Http
+@implements IAsyncDisposable
+@inject ISnackbar SnackBar
+
+@* <MudContainer > *@
+<div class="d-flex align-center justify-space-between flex-wrap">
+  @* <MudCheckBox T="bool" Required="true" RequiredError="You must agree" Label="I agree!"  /> *@
+  <MudTextField @bind-Value="ip" Label="Printer Server IP" Variant="Variant.Text"
+                MaxLength="15"></MudTextField>
+  <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="updateIP"
+             Class="ml-auto" EndIcon="@Icons.Material.Filled.Update">Actualizar</MudButton>
+</div>
+
+<MudText>Lista de Impresoras</MudText>
+
+@if (loading)
+{
+  <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+}
+else if (printers != null)
+{
+  <MudSelect T="string" Label="Selecciona una impresora" @bind-Value="selectedPrinter"
+             SelectedValuesChanged="SendResult">
+    @foreach (var printer in printers)
+    {
+      <MudSelectItem T="string" Value="@printer">@printer</MudSelectItem>
+    }
+  </MudSelect>
+}
+else
+{
+  <MudText Typo="Typo.body1" Color="Color.Error">No se pudo cargar la lista de impresoras.</MudText>
+}
+@* </MudContainer> *@
+@code {
+  private bool loading = true;
+  private List<string> printers = null;
+  private string selectedPrinter;
+  public int idPrinter = 0;
+  private string ip { get; set; } = "192.168.1.3";
+
+  [Parameter]
+  public bool isConected { get; set; }
+
+  @* [Parameter]
+    public EventCallback<bool> OnResultReceived { get; set; } *@
+  [Parameter]
+  public EventCallback<DataParam> SendData { get; set; }
+
+  public class DataParam()
+  {
+    public bool isConected { get; set; }
+    public int idPrinter { get; set; }
+    public string serverIp { get; set; }
+  }
+
+  private async Task SendResult()
+  {
+  // Lógica para generar el resultado
+    @* string result = $"Procesado: {MyParameter * 2}"; *@
+    try
+    {
+    idPrinter = printers.IndexOf(selectedPrinter);
+
+    DataParam dataParam = new DataParam
+      {
+        isConected = this.isConected,
+        idPrinter = this.idPrinter,
+        serverIp = this.ip
+      };
+    // Enviar el resultado al componente padre
+    await SendData.InvokeAsync(dataParam);
+      
+    }
+    catch (Exception e)
+    {
+      
+    }
+    @* await OnResultReceived.InvokeAsync(isConected); *@
+  }
+  private async Task updateIP()
+  {
+    printers = null;
+    isConected = false;
+    try
+    {
+      printers = await Http.GetFromJsonAsync<List<string>>("http://" + ip + ":8080/ticket/printers");
+      isConected = true;
+      selectedPrinter = printers[0];
+      Console.WriteLine("printer " + selectedPrinter);
+    await SendResult();
+      SnackBar.Add("Servidor de Ticket/Impresoras asociado correctamente", Severity.Success);
+    }
+    catch (Exception e)
+    {
+      Console.WriteLine("error " + e);
+      SnackBar.Add("No existe un servidor de Ticket/Impresoras asociado a esta IP", Severity.Error);
+    }
+    StateHasChanged();
+  }
+  protected override async Task OnInitializedAsync()
+  {
+    try
+    {
+      // Realizar la solicitud HTTP para obtener la lista de impresoras
+      // Cambiar el tiempo de espera a 30 segundos
+      Http.Timeout = TimeSpan.FromSeconds(5);
+      // ip = "192.168.1.3";
+      // await updateIP();
+      
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Error al obtener impresoras: {ex.Message}");
+      printers = null;
+    }
+    finally
+    {
+      loading = false;
+    }
+  }
+
+  public async ValueTask DisposeAsync()
+  {
+    // Si deseas liberar recursos cuando la página se elimine
+  }
+}

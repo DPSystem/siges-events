@@ -1,0 +1,78 @@
+﻿@page "/counters"
+@rendermode InteractiveServer
+@* @using PruebaMudBlazor2.Services *@
+@inject Services.ISindicatoService SindicatoService
+
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<img src="https://localhost:8443/api/v1/download/nena.jpeg" alt="Alternate Text" />
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+
+<div>
+  @* HeaderClass="custom-header" HeaderStyle="background-color: #2196F3; color: white; font-weight: bold;" *@
+  <MudTable T="EventosCupone" Items="@reservasParaAprobar" Hover="true" Breakpoint="Breakpoint.Sm" 
+            RowClass="cursor-pointer" GroupHeaderStyle="background-color:var(--mud-palette-background-gray)">
+    <HeaderContent>
+      <th>Nombre</th>
+      <th>Mochila</th>
+      <th>Fecha de Reserva</th>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="Nombre">@context.EventCuponNro</MudTd>
+      <MudTd DataLabel="Mochila">@context.QuienRetiraCupon</MudTd>
+      <MudTd DataLabel="Fecha de Reserva">@context.EventCuponFecha</MudTd>
+    </RowTemplate>
+
+  </MudTable>
+
+</div>
+
+<MudTextField @bind-Value="texto" MaxLength="10" HelperText="@helperText"
+            @oninput="OnInput"
+            Adornment="Adornment.End"
+            AdornmentIcon="@Icons.Material.Filled.TextFormat"
+            AdornmentText="@texto.Length.ToString()" /> @* Contador visual *@
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!habilitarBoton)">
+    Botón
+</MudButton>
+
+@code {
+  private string texto = "";
+  private bool habilitarBoton = false;
+  private string helperText = "Ingrese 10 caracteres";
+
+  private void OnInput(ChangeEventArgs e)
+  {
+    texto = e.Value?.ToString() ?? "";
+    habilitarBoton = texto.Length == 10;
+    helperText = habilitarBoton ? "¡Listo!" : "Ingrese 10 caracteres";
+  }
+  
+
+
+
+public List<EventosCupone>? reservasParaAprobar;
+
+  protected override async Task OnInitializedAsync()
+  {
+    reservasParaAprobar = await SindicatoService.GetReservasPendientes();
+  }
+
+  private int currentCount = 0;
+
+  private void IncrementCount()
+  {
+    currentCount++;
+  }
+
+  
+
+}

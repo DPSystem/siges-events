@@ -1,0 +1,395 @@
+﻿@page "/scanqr"
+@inject Services.ISindicatoService SindicatoService
+
+@inject IJSRuntime JS
+@inject HttpClient Http
+@inject ISnackbar snack
+@* 
+
+<div class="qr-container">
+  <MudPaper Class="pa-5">
+    <div class="qr-in">
+
+      <MudButton @onclick="StartScanning" Variant="Variant.Filled" Class="ma-5"
+                 Raised EndIcon="@Icons.Material.Filled.QrCodeScanner" Disabled="@(!_isConected)">
+        Start QR Scanner
+      </MudButton>
+
+      <div id="qr-reader" style="width: 300px;margin: auto;"></div>
+      <MudText Typo="Typo.h6">Scanned QR Code: @qrResult</MudText>
+      <br>
+
+    </div>
+
+    <Printers SendData="HandleData" />
+  </MudPaper>
+</div> *@
+
+<MudTabs Class="mt-5">
+  <MudTabPanel Text="Desde Mobil" Icon="@Icons.Material.Outlined.MobileFriendly">
+    <div class="qr-container">
+      <MudPaper Class="pa-5">
+        <div class="qr-in">
+
+          <MudButton @onclick="StartScanning" Variant="Variant.Filled" Class="ma-5"
+                     Raised EndIcon="@Icons.Material.Filled.QrCodeScanner" Disabled="@(!_isConected)">
+            Start QR Scanner
+          </MudButton>
+
+          <div id="qr-reader" style="width: 300px;margin: auto;"></div>
+          <MudText Typo="Typo.h6">Scanned QR Code: @qrResult</MudText>
+          <br>
+
+        </div>
+
+
+      </MudPaper>
+    </div>
+  </MudTabPanel>
+  <MudTabPanel Text="Manualmente" Icon="@Icons.Material.Outlined.Dialpad">
+    <div class="">
+      <MudPaper Class="pa-5 d-flex flexwrap">
+        <MudTextField @bind-Value="qrNroReserva" Label="Nro de reserva" 
+            Placeholder="Ingerse numero de reserva" @ref="txtNroReservaManual"
+                      Variant="Variant.Text" @onkeydown="@sendKeyEnter"
+                      Disabled="@(!_isConected && _isLoading)">
+        </MudTextField>
+        <MudButton @onclick="sendPrinting" Variant="Variant.Filled" Class="ma-5"
+                   Raised EndIcon="@Icons.Material.Filled.CheckCircleOutline" 
+                   Disabled="@(!_isConected && _isLoading)">
+          Validar
+        </MudButton>
+      </MudPaper>
+    </div>
+  </MudTabPanel>
+
+</MudTabs>
+
+<MudPaper Class="mt-5 pa-5">
+  <Printers SendData="HandleData" />
+</MudPaper>
+
+@code {
+  private MudTextField<string> txtNroReservaManual ;
+
+  private string qrNroReserva;
+  private List<string> printers = null;
+  @* private string txtIP = "192.168.1.3"; *@
+  private string qrResult = "Waiting for scan...";
+
+  private DotNetObjectReference<ScanQR>? objRef;
+
+  private bool _isConected = false;
+
+  private bool _isLoading = false;
+
+  public int idPrinter;
+
+  private string serverIp;
+
+  private void HandleResult(bool result)
+  {
+    _isConected = result;
+  }
+
+  private void HandleData(Printers.DataParam result)
+  {
+
+    idPrinter = result.idPrinter;
+    _isConected = result.isConected;
+    serverIp = result.serverIp;
+    Console.WriteLine(idPrinter);
+  }
+
+  @* protected override void OnInitialized()  *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  protected override async Task OnInitializedAsync()
+  {
+
+    StateHasChanged();
+    objRef = DotNetObjectReference.Create(this);
+  }
+
+  protected async ValueTask DisposeAsync(bool disposing)
+  {
+    objRef?.Dispose();
+  }
+
+  private async Task StartScanning()
+  {
+    await JS.InvokeVoidAsync("startQrScanner", [objRef, Http]);
+  }
+
+  [JSInvokable]
+  public async void OnQrCodeScanned(string result)
+  {
+    if (qrResult != result)
+    {
+      var estaReservado = await SindicatoService.YaFueEntregado(Convert.ToInt32(result));
+
+      if (!estaReservado)
+      {
+        var res = await  SindicatoService.GetReservaImpresion(Convert.ToInt32( result));
+        // 1. pregunta si esta aprobada la reserva
+
+        // 2. pregunta si no fue entregada ya y emitido el tiquet
+
+        qrResult = result;
+        var reserva = new Reserva
+        {
+
+          NroReserva = res.NroReserva,
+
+          NroSocio = res.NroSocio.ToString(),
+
+          ApellidoNombreSocio = res.ApellidoNombreSocio,
+
+          dni=res.dni.ToString(),
+
+          Familiares = res.Familiares.ToList(), /* new List<string> { "uno","dos","tres","cuatro" }, */
+
+          Regalos = res.Regalos.ToList(), /* new List<string> { "Bicicleta", "Juguete" }, */
+
+          idPrinter = idPrinter // no tocar esta tocame
+
+        };
+
+        await Http.PostAsJsonAsync("http://" + serverIp + ":8080/ticket/generar", reserva);
+
+        snack.Add("Scaneado correcto Reserva nro: " + result, Severity.Success);
+
+        StateHasChanged();
+      }
+      else
+      {
+
+        snack.Add("La reserva Nº " + qrNroReserva + "Ya Fue Retirada", Severity.Warning);
+
+      }
+    }
+
+    else
+    {
+    }
+
+  }
+
+  public   class Reserva
+  {
+    public string NroReserva { get; set; }
+
+    public string NroSocio { get; set; }
+
+    public string ApellidoNombreSocio { get; set; }
+
+    public string dni { get; set; }
+
+    public List<string> Familiares { get; set; } = new();
+
+    public List<string> Regalos { get; set; } = new();
+
+    public int idPrinter { get; set; }
+
+  }
+
+
+
+  private async Task sendPrinting()
+  {
+
+    if (string.IsNullOrEmpty(qrNroReserva))
+
+    {
+      return;
+
+    }
+
+    _isLoading = true;
+
+
+
+    if (qrResult != qrNroReserva)
+
+    {
+      try {
+
+        var estaReservado = await SindicatoService.YaFueEntregado(Convert.ToInt32(qrNroReserva));
+
+        if (!estaReservado)
+        {
+          var res = await SindicatoService.GetReservaImpresion(Convert.ToInt32(qrNroReserva));
+
+          qrResult = qrNroReserva;
+
+          var reserva = new Reserva
+          {
+            NroReserva = res.NroReserva,
+
+            NroSocio = res.NroSocio.ToString(),
+
+            ApellidoNombreSocio = res.ApellidoNombreSocio,
+
+            dni = res.dni.ToString(),
+
+            Familiares = res.Familiares.ToList(), /* new List<string> { "uno","dos","tres","cuatro" }, */
+
+            Regalos = res.Regalos.ToList(), /* new List<string> { "Bicicleta", "Juguete" }, */
+
+            idPrinter = idPrinter // no tocar esta tocame
+
+          };
+
+          await Http.PostAsJsonAsync("http://" + serverIp + ":8080/ticket/generar", reserva);
+
+          snack.Add("Scaneado correcto Reserva nro: " + qrNroReserva, Severity.Success);
+
+          StateHasChanged();
+
+        }
+        else
+        {
+          snack.Add("La reserva Nº " + qrNroReserva + " Ya Fue Retirada", Severity.Warning);
+        }
+
+      }
+      catch (Exception ex)
+
+      {
+
+        snack.Add($"Error al generar reserva: {ex.Message}", Severity.Error);
+
+      }
+
+      finally
+
+      {
+
+        _isLoading = false;
+
+        await txtNroReservaManual.Clear();
+        // await txtNroReservaManual.SetText(txtNroReservaManual.Text!);
+
+      }
+
+    }
+    else
+    {
+
+    }
+
+   
+
+  }
+
+
+
+
+
+
+
+  private async void sendKeyEnter(KeyboardEventArgs e)
+
+  {
+
+    if (e.Code == "Enter" || e.Code == "NumpadEnter") // También puedes usar e.Code == "Enter"
+
+    {
+
+      await sendPrinting();
+
+    }
+  }
+  
+}
+
+
+@*
+<div id="qr-reader" style="width: 300px;"></div>
+<p>QR Escaneado: @qrResult</p>
+<br>
+<p>QR Escaneado: @qrResult</p>
+@code {
+    public static string qrResult = "Esperando escaneo...";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("eval", @"
+                function onScanSuccess(decodedText, decodedResult) {
+                    DotNet.invokeMethodAsync('MiProyecto', 'OnQrCodeScanned', decodedText);
+                }
+
+                let html5QrcodeScanner = new Html5QrcodeScanner('qr-reader', { fps: 10, qrbox: 250 });
+                html5QrcodeScanner.render(onScanSuccess);
+            ");
+        }
+    }
+
+    [JSInvokable]
+    public static void OnQrCodeScanned(string result)
+    {
+        qrResult = result;
+        Console.WriteLine($"Código escaneado: {result}");
+    }
+} *@
+
+
+@* @inject IJSRuntime JS
+@using ReactorBlazorQRCodeScanner
+
+<QRCodeScanner />
+
+
+ @code {
+
+   private QRCodeScannerJsInterop? _qrCodeScannerJsInterop;
+   private Action<string>? _onQrCodeScanAction;
+
+   protected override async Task OnInitializedAsync()
+   {
+      _onQrCodeScanAction = (code) => OnQrCodeScan(code);
+
+       _qrCodeScannerJsInterop = new QRCodeScannerJsInterop(JS);
+       await _qrCodeScannerJsInterop.Init(_onQrCodeScanAction);
+   }
+
+   private static void OnQrCodeScan(string code)
+   {
+       Console.WriteLine($"OnQrCodeScan {code}");
+   }
+} *@
+
+@*
+@using BlazorBarcodeScanner.ZXing.JS
+
+  <BlazorBarcodeScanner.ZXing.JS.BarcodeReader @ref="_reader"
+    />
+    <button @onclick="OnGrabFrame">Grab image</button>
+
+    <img src="@_imgSrc"  style="@(string.IsNullOrWhiteSpace(_imgSrc) ? "display:none;" : "")" />
+
+@code {
+    private BarcodeReader _reader;
+    private string _imgSrc = string.Empty;
+
+    private async void   OnGrabFrame(MouseEventArgs args)
+    {
+        _imgSrc = await _reader.Capture();
+        StateHasChanged();
+    }
+} *@
