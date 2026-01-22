@@ -1,0 +1,276 @@
+﻿@using MudBlazor
+@* @using MudBlazor.ThemeManager *@
+@inherits LayoutComponentBase
+
+@* @using MudBlazor
+@using MudBlazor.Components *@
+@* @inject IJSRuntime JS *@
+
+@* <MudThemeManagerButton OnClick="@((e) => OpenThemeManager(true))" />
+<MudThemeManager Open="_themeManagerOpen" OpenChanged="OpenThemeManager" Theme="_themeManager" ThemeChanged="UpdateTheme" /> *@
+
+@* <MudThemeProvider @rendermode="InteractiveServer" /> *@
+@* <MudSnackbarProvider @rendermode="InteractiveServer" />
+<MudDialogProvider @rendermode="InteractiveServer" />
+ *@
+@* <MudThemeProvider /> *@
+<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudLayout>
+
+  <MudAppBar Elevation="1">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+      OnClick="@((e) => DrawerToggle())" />
+    <MudText Typo="Typo.h5" Class="ml-3"></MudText>
+    <img src="/Images/logo-imagen.png" asp-append-version="true" />
+    <img src="/Images/logo-texto.png" asp-append-version="true" class="logo-texto hidden" />
+    <MudSpacer />
+    @* <MudMenu Label="Menu" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Menu"
+      EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Tertiary">
+      <MudMenuItem>
+        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home" Edge="Edge.End">Home
+        </MudNavLink>
+      </MudMenuItem>
+      <MudMenuItem>
+        <MudNavLink Href="reservas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Work" Edge="Edge.End">
+          Reserva Mochila</MudNavLink>
+      </MudMenuItem>
+      <MudMenuItem Disabled>
+        <MudNavLink Href="canet" Match="NavLinkMatch.Prefix" Disabled Icon="@Icons.Material.Outlined.Badge"
+          Edge="Edge.End">Carnets</MudNavLink>
+      </MudMenuItem>
+      <MudDivider />
+      <MudMenuItem Label="Item 1">
+        <MudNavLink Href="https://sasweb.com.ar" Match="NavLinkMatch.Prefix" Target="blank"
+          Icon="@Icons.Material.Outlined.Language" Edge="Edge.End">SAS Web</MudNavLink>
+      </MudMenuItem>
+    </MudMenu> *@
+    <MudSpacer />
+    <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
+    @* <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" /> *@
+  </MudAppBar>
+  @* <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+  </MudDrawer> *@
+  <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
+    <MudDrawerHeader>
+      <MudText Typo="Typo.h6">Eventos SECSGO</MudText>
+    </MudDrawerHeader>
+    <NavMenu />
+  </MudDrawer>
+  <MudMainContent Class="mt-12 pa-4">
+    <div class="body-body">
+      @Body
+    </div>
+  </MudMainContent>
+  @* <Footer /> *@
+</MudLayout>
+
+@* <div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div> *@
+
+<div id="blazor-error-ui">
+  An unhandled error has occurred.
+  <a href="" class="reload">Reload</a>
+  <a class="dismiss">🗙</a>
+</div>
+
+@code {
+  private bool _drawerOpen = true;
+  private bool _isDarkMode = false;
+  @* private MudTheme? _theme = null; *@
+
+  protected override void OnInitialized()
+  {
+
+    base.OnInitialized();
+
+
+
+    @* _theme = new()
+
+    {
+
+      PaletteLight = _lightPalette,
+
+      PaletteDark = _darkPalette,
+
+      LayoutProperties = new LayoutProperties()
+
+    }; *@
+
+
+
+    StateHasChanged();
+  }
+
+  private void DrawerToggle()
+  {
+
+    _drawerOpen = !_drawerOpen;
+  }
+
+  public void DarkModeToggle()
+  {
+
+    _isDarkMode = !_isDarkMode;
+  }
+
+  private readonly MudTheme _theme = new MudTheme()
+  {
+    PaletteLight = new PaletteLight()
+    {
+      Primary = "#002B49",
+      Secondary = "#004E89",
+      AppbarBackground = "#002B49",
+      Surface = "#F8F6F6FF"
+    },
+    PaletteDark = new PaletteDark()
+    {
+      Primary = "#55A7F3FF"
+    }
+  };
+
+  private readonly PaletteLight _lightPalette = new()
+  {
+    @* Primary = Colors.Indigo.Default,
+            Secondary = Colors.Blue.Accent4,
+            AppbarBackground =Colors.Indigo.Default, *@
+    Primary = "#242C4F",
+    Secondary = Colors.BlueGray.Darken1,
+    Tertiary = "#FDF7F7FF",
+    Black = "#110e2d",
+    AppbarText = "#FDF7F7FF",
+    AppbarBackground = "#242C4F",
+    DrawerBackground = "#242C4F",
+    GrayDefault = "#EC3838FF",
+    GrayLight = "#CB2828FF",
+    GrayLighter = "#239865FF",
+    TextPrimary = "#222223FF",
+    TextSecondary = "#4B4B4CFF",
+    DrawerIcon = "#27A5EEFF",
+    DrawerText = "#FDF7F7FF",
+    ActionDefault = "#30268DFF",
+    Background = "#E8E8F0FF",
+    BackgroundGray = "#151521",
+
+    Info = "#4a86ff",
+    Success = "#3dcb6c",
+    Warning = "#ffb545",
+    Error = "#ff3f5f",
+    LinesDefault = "#33323e",
+    TableLines = "#33323e",
+    Divider = "#292838",
+    OverlayLight = "#1e1e2d80",
+    @* Skeleton = "#27A5EEFF", *@
+  };
+
+  private readonly PaletteDark _darkPalette = new()
+  {
+    Primary = "#2F2F3C",
+    Tertiary = "#92929f",
+    Surface = "#1e1e2d",
+    Background = "#1a1a27",
+    BackgroundGray = "#151521",
+    AppbarText = "#92929f",
+    AppbarBackground = "rgba(26,26,39,0.8)",
+    DrawerBackground = "#1a1a27",
+    ActionDefault = "#74718e",
+    ActionDisabled = "#9999994d",
+    ActionDisabledBackground = "#605f6d4d",
+    TextPrimary = "#b2b0bf",
+    TextSecondary = "#92929f",
+    TextDisabled = "#ffffff33",
+    DrawerIcon = "#92929f",
+    DrawerText = "#92929f",
+    GrayLight = "#2a2833",
+    GrayLighter = "#1e1e2d",
+    Info = "#4a86ff",
+    Success = "#3dcb6c",
+    Warning = "#ffb545",
+    Error = "#ff3f5f",
+    LinesDefault = "#33323e",
+    TableLines = "#33323e",
+    Divider = "#292838",
+    OverlayLight = "#1e1e2d80",
+  };
+
+
+  public string DarkLightModeButtonIcon => _isDarkMode switch
+  {
+
+    true => Icons.Material.Rounded.AutoMode,
+
+    false => Icons.Material.Outlined.DarkMode,
+  };
+
+  @* protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+        await JS.InvokeVoidAsync("loadScript", "JSFILENAME.js");
+} *@
+
+  @* private ThemeManagerTheme _themeManager = new ThemeManagerTheme(); *@
+
+  public bool _themeManagerOpen = false;
+
+
+
+  void OpenThemeManager(bool value)
+
+  {
+
+    _themeManagerOpen = value;
+
+  }
+
+
+
+  @* void UpdateTheme(ThemeManagerTheme value)
+
+  {
+
+    _themeManager = value;
+
+    StateHasChanged();
+
+  } *@
+
+  @* protected override void OnInitialized()
+{
+    StateHasChanged();
+} *@
+}
+
+
+
+@* @inherits LayoutComponentBase
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div> *@

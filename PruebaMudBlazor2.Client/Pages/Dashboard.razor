@@ -1,0 +1,107 @@
+﻿@using MudBlazor
+@using System.Linq;
+
+@page "/dashboard"
+
+<MudContainer Class="mt-5">
+  <MudGrid Justify="Justify.SpaceEvenly">
+    <MudItem xs="12" sm="6" md="4">
+      <MudPaper Class="pa-4 d-flex flex-column align-center border-b-4 border-solid mud-border-info"
+                Elevation="3">
+        <h1>
+          <MudChip T="string" Icon="@Icons.Material.Filled.Receipt"
+                   Color="Color.Info" Variant="Variant.Text">
+            Cupones Emitidos
+          </MudChip>
+        </h1>
+
+        @* <MudIcon Icon="@Icons.Material.Filled.Receipt" Color="Color.Info" Size="Size.Large" Class="mb-4" />
+        <MudText Typo="Typo.h6" Color="Color.Info">Cupones Emitidos</MudText> *@
+        <MudText Typo="Typo.h6">150</MudText>
+      </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="4">
+      <MudPaper Class="pa-4 d-flex flex-column align-center border-b-4 border-solid mud-border-success"
+                Elevation="3">
+        <h1>
+          <MudChip T="string" Icon="@Icons.Material.Filled.CheckCircle"
+                   Color="Color.Success" Variant="Variant.Text">
+            Cupones Entregados
+          </MudChip>
+        </h1>
+        @* <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" Class="mb-4" />
+        <MudText Typo="Typo.h6">Cupones Entregados</MudText> *@
+        <MudText Typo="Typo.h6">120</MudText>
+      </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="4">
+      <MudPaper Class="pa-4 d-flex flex-column align-center border-b-4 border-solid mud-border-warning"
+                Elevation="3">
+        @* <MudIcon Icon="@Icons.Material.Filled.PendingActions" Color="Color.Warning" Size="Size.Large" Class="mb-4" /> *@
+        <h1>
+          <MudChip T="string" Icon="@Icons.Material.Filled.PendingActions"
+                   Color="Color.Warning" Variant="Variant.Text">
+            Cupones por Entregar
+          </MudChip>
+        </h1>
+        <MudText Typo="Typo.h6">30</MudText>
+      </MudPaper>
+    </MudItem>
+  </MudGrid>
+</MudContainer>
+
+<MudContainer Class="mt-5">
+  <MudCard>
+    <MudCardContent>
+      @* <MudTypography Variant="H4">Dashboard de Mochilas</MudTypography> *@
+      <MudTable Items="@MochilaCounts" Dense Class="border-b-4 border-solid mud-border-info">
+        <HeaderContent>
+          <th>Socio</th>
+          <th>Nro ticket</th>
+        </HeaderContent>
+        <RowTemplate Context="item">
+          <MudTd>@item.Key</MudTd>
+          <MudTd>@item.Value</MudTd>
+        </RowTemplate>
+      </MudTable>
+
+      <MudChart ChartType="ChartType.Bar" Labels="@MochilaCounts.Keys.ToList()" Ticks="5">
+        @* <MudChartSeries Data="@MochilaCounts.Values.ToList()" Color=MudBlazor.Color.Primary /> *@
+      </MudChart>
+    </MudCardContent>
+  </MudCard>
+</MudContainer>
+
+@code {
+  class Ciclo
+  {
+
+    public int Id { get; set; }
+
+    public string Mochila { get; set; }
+  }
+
+  List<Ciclo> ciclos = new()
+    {
+        new Ciclo {Id = 1,  Mochila="Jardin Mujer Salita 3/4/5" },
+        new Ciclo {Id = 2,  Mochila="Jardin Varon Salita 3/4/5" },
+        new Ciclo {Id = 3,  Mochila= "Primaria Mujer de 1º a 2º Grado"},
+        new Ciclo {Id = 4,  Mochila= "Primaria Varon de 1º a 2º Grado"},
+        new Ciclo {Id = 5,  Mochila= "Primaria Mujer de 3º a 7º Grado"},
+        new Ciclo {Id = 6,  Mochila= "Primaria Varon de 3º a 7º Grado"},
+        new Ciclo {Id = 7,  Mochila= "Secundario Mujer"},
+        new Ciclo {Id = 8,  Mochila= "Secundario Varon"}
+    };
+
+  Dictionary<string, int> MochilaCounts;
+
+  protected override void OnInitialized()
+  {
+
+    MochilaCounts = ciclos.GroupBy(c => c.Mochila)
+
+                          .ToDictionary(g => g.Key, g => g.Count());
+  }
+}

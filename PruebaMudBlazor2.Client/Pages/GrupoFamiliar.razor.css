@@ -1,0 +1,195 @@
+.list{
+    /* flex-direction: row; */
+    display: flex;
+    /* justify-content: space-between; */
+    gap: 0.5rem;
+}
+
+img {
+    object-fit: cover;
+    object-position: top center;
+    border-radius:50%;
+    width: 50px;
+    height: 50px;
+  }
+  .list-item-group{
+    display: flex;
+    flex-direction: row;
+    gap: 0.3rem;
+    
+}
+
+
+
+
+ @media (max-width: 640.98px) {
+    ::deep .mdc-list--two-line .mdc-list-item {
+        height: 350px;
+    }
+    
+ 
+    .list{
+        display: flex;
+        flex-direction: row;  
+        flex-wrap: wrap;
+    }
+   
+    .list-item-group{
+        display: flex;
+        justify-content: space-around;
+        gap: 0.5rem;
+        /* align-items: flex-start; */
+    }
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+
+
+.lista-item {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en varias líneas */
+    align-items: center;
+    /* padding: 10px; */
+    border-bottom: 2px solid #ddd;
+    position: relative; /* Para posicionar el botón correctamente */
+}
+
+.lista-item:last-child {
+    border-bottom: none;
+}
+
+.lista-row{
+    display: flex;
+    flex-direction: row;
+}
+
+.foto {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.nombre {
+    flex: 1;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.edad {
+    flex: 1;
+    font-size: 14px;
+    color: #555;
+}
+
+.opciones {
+    flex: 1;
+    padding: 8px;
+    /* font-size: 14px; */
+    /* border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff; */
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    /* background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); */
+    /* background-repeat: no-repeat;
+    background-position: right 8px center; */
+    padding-right: 30px;
+}
+
+.boton-fila {
+    width: 100%; /* Ocupa toda la fila */
+    margin-top: 10px; /* Espacio entre los controles y el botón */
+    padding: 10px;
+    font-size: 16px;
+    /* color: #fff;
+    background-color: #007bff; */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.boton-fila:hover {
+    /* background-color: #0056b3; */
+}
+
+.boton-fila:focus {
+    outline: none; /* Elimina el contorno al enfocar */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Sombra suave al enfocar */
+}
+
+
+
+.grid-container {
+    display: grid;
+    grid-template-rows: 1fr 1fr; /* 2 columnas */
+    grid-template-rows: auto; /* Altura automática */
+    gap: 0.0rem; /* Espacio entre elementos */
+    width: 100%;
+    max-width: 400px;
+    min-height: 200px; /* Altura mínima para visualización */
+    /* background-color: #f0f0f0; */
+}
+
+/* Primera columna (dividida en 2 filas) */
+.columna-izquierda {
+    display: grid;
+    grid-template-rows: 1fr 1fr; /* 2 filas de igual altura */
+    gap: 0.0rem;
+   
+}
+
+
+/* Estilos para móvil (menos de 768px) */
+@media screen and (max-width: 768px) {
+    .grid-container {
+        grid-template-columns: 1fr; /* 1 columna (todo apilado) */
+        grid-template-rows: 1fr 1fr ; /* 3 filas independientes */
+    }
+
+    .columna-izquierda {
+        display: contents; /* Elimina el sub-grid para que las filas sean parte del grid principal */
+    }
+
+    /* Asegura que todos los elementos sean hijos directos del grid-container */
+    .fila-superior,
+    .fila-inferior,
+    .columna-derecha {
+        min-height: 50px; /* Ajusta según necesites */
+        height: min-content;
+        padding: 0.1rem;
+    }
+}  
+
+
+/* Elementos de la primera columna */
+.fila-superior {
+    /* background-color: #f0f0f0; */
+    /* display: flex;
+    flex-direction: column; */
+    gap: 0.5rem;
+    padding: 0.5rem;
+    /* border: 1px solid #ddd; */
+}
+
+.fila-inferior {
+    /* background-color: #f8f8f8; */
+    padding: 0.5rem;
+    /* border: 1px solid #ddd; */
+}
+
+/* Segunda columna */
+.columna-derecha {
+    /* background-color: #e0e0e0; */
+    padding: 0.5rem;
+    border: 1px dotted #ddd;
+}

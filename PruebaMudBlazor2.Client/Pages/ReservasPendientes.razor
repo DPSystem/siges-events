@@ -1,0 +1,276 @@
+﻿@using System.Net.Http.Json
+@* @using Models *@
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+
+@* @inject HttpClient httpClient *@
+
+@page "/ReservasPendientes"
+
+@* <input type="file" accept="image/*" capture> *@
+<br>
+<h3>RESERVAS PENDIENTES</h3>
+<br>
+<MudTable Items="@Elements.Take(4)" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info">
+  <HeaderContent>
+    <MudTh>Nro Reserva</MudTh>
+    <MudTh>Fecha de Reserva</MudTh>
+    <MudTh>Apellido y Nombre</MudTh>
+    <MudTh>Acciones</MudTh>
+  </HeaderContent>
+  <RowTemplate>
+    <MudTd DataLabel="Nro Reserva">@context.NroReserva</MudTd>
+    <MudTd DataLabel="Fecha de Reserva">@context.FechaReserva.ToString("yyyy-MM-dd")</MudTd>
+    <MudTd DataLabel="Apellido y Nombre">@context.ApellidoYNombres</MudTd>
+    <MudTd DataLabel="Acciones">
+      <!-- Botones de acción -->
+      <MudIconButton Icon="@Icons.Material.Outlined.Preview" aria-label="ver"
+                     OnClick="() => MostrarDetalles()" title="ver documentos" Color="Color.Info" />
+      <MudIconButton Icon="@Icons.Material.Outlined.ViewAgenda" aria-label="ver" title="ver grupo familiar"
+                     OnClick="() => VerReserva()" Color="Color.Default" />
+      <MudIconButton Icon="@Icons.Material.Outlined.ThumbDown" aria-label="ver" title="Rechazar"
+                     OnClick="() => RechazarReserva()" Color="Color.Error" />
+      <MudIconButton Icon="@Icons.Material.Outlined.ThumbUp" aria-label="ver" title="Rechazar"
+                     OnClick="() => AprobarReserva()" Color="Color.Success" />
+      @* <MudButton Color="Color.Primary" >Ver</MudButton>
+      <MudButton Color="Color.Success" >Aprobar</MudButton>
+      <MudButton Color="Color.Info" OnClick="@MostrarDetalles">Mostrar</MudButton> *@
+    </MudTd>
+  </RowTemplate>
+</MudTable>
+
+<!-- Diálogo para mostrar detalles -->
+<MudDialog @bind-Visible="_dialogOpen">
+  <DialogContent>
+    <MudTable Items="detallesReserva" Striped="true" Hover="true">
+      <HeaderContent>
+        <MudTh>Nombre</MudTh>
+        <MudTh>Fecha</MudTh>
+      </HeaderContent>
+      <RowTemplate>
+        <MudTd>@context.Nombre</MudTd>
+        <MudTd>@context.Fecha.ToString("yyyy-MM-dd")</MudTd>
+      </RowTemplate>
+    </MudTable>
+  </DialogContent>
+  <DialogActions>
+    <MudButton Color="Color.Primary" OnClick="CerrarDialogo">Cerrar</MudButton>
+  </DialogActions>
+</MudDialog>
+
+<!-- Diálogo para mostrar Documentos subidos -->
+<MudDialog @bind-Visible="_dialogOpenDoc">
+  <DialogContent>
+    <MudContainer>
+      <MudGrid Spacing="2">
+        @foreach (var image in Images)
+
+        {
+          <MudItem xs="6" sm="4" md="3" lg="2">
+            <MudCard Class="image-card">
+              <MudLink Href="@image" Target="blank">
+                <MudCardMedia Image="@image" Alt="Image" Class="image" />
+              </MudLink>
+              @* <MudCardMedia Image="@image" Alt="Image" Class="image" @onclick="() => NavigateToImage(image)"/> *@
+            </MudCard>
+          </MudItem>
+        }
+      </MudGrid>
+    </MudContainer>
+  </DialogContent>
+  <DialogActions>
+    <MudButton Color="Color.Primary" OnClick="CerrarDialogo">Cerrar</MudButton>
+  </DialogActions>
+</MudDialog>
+
+<MudSwitch @bind-Value="_hidePosition" Color="Color.Primary">Hide <b>position</b> when Breakpoint=Xs</MudSwitch>
+<MudSwitch @bind-Value="_loading" Color="Color.Primary">Show Loading</MudSwitch>
+
+<style>
+  .image-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .image {
+    width: 200px;
+    height: 200px;
+  @* aspect-ratio: 1 / 1; *@ @* object-fit: cover; *@
+  }
+</style>
+
+@code {
+  private bool _dialogOpen = false; // Para controlar el estado del diálogo
+
+  private bool _dialogOpenDoc = false; // Para controlar el estado del diálogo
+  private List<DetalleReserva> detallesReserva = new List<DetalleReserva>();
+  private bool _hidePosition;
+  private bool _loading;
+  @* private IEnumerable<Element> Elements = new List<Element>(); *@
+  private IEnumerable<Reserva> Elements = new List<Reserva>();
+
+
+
+  private void AprobarReserva()
+  {
+
+    Snackbar.Add("Aprobado", Severity.Success);
+
+    Console.WriteLine("Aprobado");
+
+  }
+
+  private void RechazarReserva()
+  {
+
+    Snackbar.Add("Rechazado", Severity.Error);
+
+    Console.WriteLine("Rechazado");
+
+  }
+
+
+
+  private List<string> Images = new()
+    {
+  @* "http://secbanda.com.ar:8080/api/v1/download/imagen.jpeg", *@
+        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
+        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
+        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
+        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
+        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
+    };
+
+  private void NavigateToImage(string imageUrl)
+  {
+    @* Navigation.NavigateTo($"/image-viewer?image={Uri.EscapeDataString(imageUrl)}"); *@
+    Navigation.NavigateTo(Uri.EscapeDataString(imageUrl));
+  }
+
+  // Método que se llama al hacer click en "Mostrar"
+
+  private void MostrarDetalles()
+  {
+
+    // Aquí puedes poblar detalles adicionales de la reserva (puedes simular una llamada a la API si es necesario)
+
+    detallesReserva = new List<DetalleReserva>
+
+    {
+      @* new DetalleReserva { Nombre = reserva.ApellidoYNombres, Fecha = reserva.FechaReserva } *@
+    };
+
+
+
+    // Abrir el diálogo
+
+    _dialogOpen = true;
+  }
+
+  // Método que se llama al hacer click en "Cerrar"
+  private void CerrarDialogo()
+  {
+
+    _dialogOpen = false;
+  }
+
+  // Métodos de acción para los botones
+  private void VerReserva()
+  {
+
+    // Aquí puedes agregar la lógica para ver la reserva
+
+    detallesReserva = new List<DetalleReserva>
+
+    {
+      @* new DetalleReserva { Nombre = reserva.ApellidoYNombres, Fecha = reserva.FechaReserva } *@
+    };
+
+
+
+    // Abrir el diálogo
+
+    _dialogOpenDoc = true;
+    @* Console.WriteLine($"Ver Reserva: {reserva.NroReserva}"); *@
+  }
+
+  private void AprobarReserva(Reserva reserva)
+  {
+
+    // Aquí puedes agregar la lógica para aprobar la reserva
+
+    Console.WriteLine($"Aprobar Reserva: {reserva.NroReserva}");
+  }
+
+
+
+
+
+  // Clase para representar el detalle de la reserva (para la tabla del diálogo)
+
+  public class DetalleReserva
+
+  {
+
+    public string Nombre { get; set; }
+
+    public DateTime Fecha { get; set; }
+
+  }
+  protected override async Task OnInitializedAsync()
+  {
+    @* Elements = await httpClient.GetFromJsonAsync<List<Element>>("webapi/periodictable"); *@
+    @* Elements = ElementData.GetSampleElements(); *@
+    Elements = DatosDeMuestra.ObtenerReservas();
+  }
+
+
+
+  public class Reserva
+  {
+
+    public int NroReserva { get; set; } // Número de reserva
+
+    public DateTime FechaReserva { get; set; } // Fecha de reserva
+
+    public string ApellidoYNombres { get; set; } // Apellido y nombre del socio
+
+
+    // Constructor
+
+    public Reserva(int nroReserva, DateTime fechaReserva, string apellidoYNombres)
+    {
+
+      NroReserva = nroReserva;
+
+      FechaReserva = fechaReserva;
+
+      ApellidoYNombres = apellidoYNombres;
+
+    }
+  }
+
+  // Clase estática para obtener datos de muestra
+  public static class DatosDeMuestra
+  {
+
+    public static List<Reserva> ObtenerReservas()
+
+    {
+
+      return new List<Reserva>
+            {
+                new Reserva(101, new DateTime(2025, 2, 18), "Pérez, Juan"),
+                new Reserva(102, new DateTime(2025, 2, 19), "Gómez, Ana"),
+                new Reserva(103, new DateTime(2025, 2, 20), "Rodríguez, Luis"),
+                new Reserva(104, new DateTime(2025, 2, 21), "Fernández, María"),
+                new Reserva(105, new DateTime(2025, 2, 22), "Martínez, Pedro")
+            };
+
+    }
+  }
+
+}

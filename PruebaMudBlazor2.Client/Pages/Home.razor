@@ -1,0 +1,52 @@
+﻿@page "/"
+@* @using QRCoder
+@using System.Drawing.Imaging
+@using System.Drawing
+
+
+<div><img alt="" src="@QRByte" width="300" class="mb-5" /></div>
+<div data-url="@QRByte"></div>
+@code {
+  private string QRByte = "";
+
+  public void GenerateQRCode(string QRUrl = "prueba qr")
+
+  {
+    if (!string.IsNullOrEmpty(QRUrl))
+    {
+      using MemoryStream ms = new();
+      QRCodeGenerator qrCodeGenerate = new();
+      QRCodeData qrCodeData = qrCodeGenerate.CreateQrCode(QRUrl, QRCodeGenerator.ECCLevel.Q);
+
+      QRCode qrCode = new(qrCodeData);
+
+      using Bitmap qrBitMap = qrCode.GetGraphic(20);
+
+      qrBitMap.Save(ms, ImageFormat.Png);
+
+      string base64 = Convert.ToBase64String(ms.ToArray());
+
+      QRByte = string.Format("data:image/png;base64,{0}", base64);
+
+    }
+  }
+   *@}
+
+
+
+<div class="home-bg"></div> 
+@* 
+<div class="d-flex justify-center">
+  <MudImage Fluid="true" Src="Pictures/SUC.png" Alt="Invitacion Cierre de Contingente" />
+</div> *@
+
+<PageTitle>Home</PageTitle>
+
+@code {
+
+
+
+
+
+}
+

@@ -1,0 +1,66 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Search">
+        Dónde voto?</MudNavLink>
+
+    <MudNavLink Href="reservas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Work" Edge="Edge.End">
+        Reserva Mochila</MudNavLink>
+
+
+    <MudDivider />
+
+    <MudNavLink Href="https://sasweb.com.ar" Match="NavLinkMatch.Prefix" Target="blank"
+        Icon="@Icons.Material.Outlined.Language" Edge="Edge.End">SAS Web</MudNavLink>
+
+</MudNavMenu>
+
+@* <AuthorizeView Roles="Admin">
+    <Authorized>
+        <MudNavMenu>
+            <MudNavLink Href="/dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Dashboard">Dashboard
+            </MudNavLink>
+            <MudNavLink Href="/estadisticas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Analytics">
+                Estadísticas</MudNavLink>
+            <MudNavLink Href="/votantes" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">Padrón
+            </MudNavLink>
+            <MudNavLink Href="/admin-votaciones" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.HowToVote">
+                Votaciones</MudNavLink>
+            <MudNavLink Href="/mesas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.TableRows">Mesas
+            </MudNavLink>
+            <MudNavLink Href="/circuitos" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Map">Circuitos
+            </MudNavLink>
+            <MudNavLink Href="/centros-votacion" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Place">Centros
+                de Movilización</MudNavLink>
+            <MudNavLink Href="/partidospoliticos" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Flag">
+                Partidos Políticos</MudNavLink>
+            <MudNavLink Href="/automoviles" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DirectionsCar">
+                Automóviles</MudNavLink>
+            <MudNavGroup Title="Reportes" Icon="@Icons.Material.Filled.Assessment" Expanded="false">
+                <MudNavLink Href="/reporte-automoviles" Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Filled.DirectionsCar">Automóviles
+                </MudNavLink>
+                <MudNavLink Href="/reporte-movilizacion" Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Filled.People">Movilización</MudNavLink>
+                <MudNavLink Href="/reporte-votantes-empresa" Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Filled.Business">Votantes por Empresa</MudNavLink>
+            </MudNavGroup>
+        </MudNavMenu>
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Fiscal">
+    <Authorized>
+        <MudNavMenu>
+            <MudNavLink Href="/votacionesmesa" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.HowToVote">
+                Votaciones</MudNavLink>
+        </MudNavMenu>
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Responsable">
+    <Authorized>
+        <MudNavMenu>
+            <MudNavLink Href="/reporte-movilizacion" Match="NavLinkMatch.Prefix"
+                Icon="@Icons.Material.Filled.Assessment">Reporte de Movilización</MudNavLink>
+        </MudNavMenu>
+    </Authorized>
+</AuthorizeView> *@

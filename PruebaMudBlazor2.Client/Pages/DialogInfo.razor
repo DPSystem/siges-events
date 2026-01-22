@@ -1,0 +1,399 @@
+@using PruebaMudBlazor2.Client.Services
+@using PruebaMudBlazor2.Shared.Models
+@using MudBlazor
+
+@using QRCoder
+@using System.Drawing.Imaging
+@using System.Drawing
+@using System.IO
+@using Microsoft.AspNetCore.Components.Forms
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject ISindicatoService SindicatoService
+
+@using System.Net.Http.Headers
+@using System.Net.Http.Json
+
+<MudDialog @bind-Visible="_visible">
+  <TitleContent>
+    <h3>Informacion de Reserva</h3>
+  </TitleContent>
+  <DialogContent>
+    <h3>SOCIO Nº @socio.MaesocNroafil</h3>
+    <h3>@socio.Apenom</h3>
+
+    <h2 hidden="@btnConfirmarIsVisible">RESERVA Nº @EstadoReserva.EventCuponNro </h2> @* @NroDeReserva *@
+
+    @if ((EstadoReserva != null) && (!btnConfirmarIsVisible))
+    {
+      @if (EstadoReserva.Reimpresion == 0)
+      {
+        <br />
+        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Success"
+                 Icon="@Icons.Material.Filled.Check"><h4> Para Retirar</h4> </MudChip>
+      }
+      @if (EstadoReserva.Reimpresion == 1)
+      {
+        <br />
+        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning"
+                 Icon="@Icons.Material.Filled.Warning"><h4>Retirado</h4></MudChip>
+      }
+
+      @if (EstadoReserva.Reimpresion == 2)
+      {
+        <br />
+        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning"
+                 Icon="@Icons.Material.Filled.Warning"><h4>Pendiente de Aprobacion</h4></MudChip>
+      }
+      @if (EstadoReserva.Reimpresion == 3)
+      {
+        <br />
+        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning"
+                 Icon="@Icons.Material.Filled.Warning"><h4>Rechazada</h4></MudChip>
+      }
+    }
+
+    <br />
+
+    <div>
+      @* HeaderClass="custom-header" HeaderStyle="background-color: #2196F3; color: white; font-weight: bold;" *@
+      <MudTable T="Alumno" Items="@alumnos" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
+                RowClass="cursor-pointer" GroupHeaderStyle="background-color:var(--mud-palette-background-gray)">
+        <HeaderContent>
+          <th>Nombre</th>
+          <th>Mochila</th>
+          <th>Fecha de Reserva</th>
+        </HeaderContent>
+        <RowTemplate>
+          <MudTd DataLabel="Nombre">@context.Apenom</MudTd>
+          <MudTd DataLabel="Mochila">@context.CicloEscolar</MudTd>
+          <MudTd DataLabel="Fecha de Reserva">@DateTime.Now</MudTd>
+        </RowTemplate>
+
+      </MudTable>
+
+    </div>
+    <br />
+    @if (btnConfirmarIsVisible)
+    {
+      <p>
+        <MudTextField Immediate="true" Label="Nº de Celular"
+                    HelperText="Completar para poder Confirmar"
+                    ValidationText="Completar para poder Confirmar"
+                    Validation="@(new Func<string, IEnumerable<string>>(IsEmpty))"
+                    @bind-Value="@NroDeCelular" Variant="@Variant.Text" Clearable />
+      </p>
+    }
+    @* <MudImage src="@QRByte" alt="Foto" Width="300"/> *@
+    @* <div><img alt="" src="@QRByte" width="300" class="mb-5" hidden="@btnConfirmarIsVisible" /></div>
+    <div data-url="@QRByte"></div> *@
+    <MudStack AlignItems="AlignItems.Center" Spacing="4">
+    <MudPaper Class="pa-4" Elevation="3">
+        @* <MudText Typo="Typo.subtitle1" Align="Align.Center">Código de Cupón</MudText> *@
+        <MudImage Src="@qrCuponSource" Width="200" Height="200" Alt="QR Cupón" />
+    </MudPaper>
+
+    @* <MudPaper Class="pa-4" Elevation="3">
+        <MudText Typo="Typo.subtitle1" Align="Align.Center">Código de Reserva</MudText>
+        <MudImage Src="@qrReservaSource" Width="200" Height="200" Alt="QR Reserva" />
+    </MudPaper> *@
+</MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="@Cancel" Color="MudBlazor.Color.Info">Volver</MudButton>
+    @if (btnConfirmarIsVisible)
+    {
+      <MudButton Variant="Variant.Filled" OnClick="@FinalizarReserva"
+                 Disabled="@(NroDeCelular.Length < 9 || btnConfirmarIsDisable)">Confirmar Reserva</MudButton> @* OnClick="@FinalizarReserva" *@
+    }
+
+  </DialogActions>
+</MudDialog>
+
+
+@code {
+// Definimos variables separadas para cada QR
+private string qrCuponSource = "";
+private string qrReservaSource = "";
+
+  protected override async Task OnInitializedAsync()
+  {
+    NroDeCelular = "";
+    @* GenerateQRCode(EstadoReserva.EventCuponNro.ToString());
+    GenerateQRCode(NroDeReserva.ToString()); *@
+    // Generamos y guardamos cada QR en su propia variable
+    qrCuponSource = GenerateQRCode(EstadoReserva.EventCuponNro.ToString());
+    qrReservaSource = GenerateQRCode(NroDeReserva.ToString());
+  }
+
+  private string NroDeCelular;
+
+  @* private string QRByte = ""; *@
+
+  public string GenerateQRCode(string text)
+{
+    if (string.IsNullOrWhiteSpace(text)) return "";
+
+    using var qrGenerator = new QRCodeGenerator();
+    using var qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
+    
+    // SOLUCIÓN AL ERROR: Usamos PngByteQRCode. 
+    // Esta clase NO usa System.Drawing y funciona perfecto en el navegador.
+    var qrCode = new PngByteQRCode(qrCodeData);
+    byte[] qrAsBytes = qrCode.GetGraphic(20); 
+
+    // Convertimos a base64 para que la etiqueta <img> pueda leerlo
+    return $"data:image/png;base64,{Convert.ToBase64String(qrAsBytes)}";
+}
+
+  @* public void GenerateQRCode(string QRUrl = "prueba qr")
+  {
+    if (!string.IsNullOrEmpty(QRUrl))
+    {
+      using MemoryStream ms = new();
+      QRCodeGenerator qrCodeGenerate = new();
+
+      QRCodeData qrCodeData = qrCodeGenerate.CreateQrCode(QRUrl, QRCodeGenerator.ECCLevel.Q);
+      QRCode qrCode = new(qrCodeData);
+      using Bitmap qrBitMap = qrCode.GetGraphic(20);
+      qrBitMap.Save(ms, ImageFormat.Png);
+      string base64 = Convert.ToBase64String(ms.ToArray());
+      QRByte = string.Format("data:image/png;base64,{0}", base64);
+    }
+  } *@
+
+  private IEnumerable<string> IsEmpty(string ch)
+  {
+    if (string.IsNullOrEmpty(ch) || ch?.Length < 11)
+    yield return "Complete el campo celular";
+  }
+
+  private bool _visible;
+  private void Close() => _visible = false;
+
+  [Parameter]
+  public List<Alumno>? alumnos { get; set; }
+
+  [Parameter]
+  public Maesoc socio { get; set; }
+
+  [Parameter]
+  public int NroDeReserva { get; set; }
+
+  [Parameter]
+  public EventosCupone EstadoReserva { get; set; }
+
+  [Parameter]
+  public IList<IBrowserFile>? _files2 { get; set; }
+
+  // [Parameter]
+  // public EventCallback<List<Alumno>> OnReservaConfirmada { get; set; }  // Nuevo Evento
+
+
+
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; }
+
+  private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+  private void Cancel() => MudDialog.Cancel();
+
+  [Parameter]
+  public bool btnConfirmarIsVisible { get; set; } = false;
+
+  public bool btnConfirmarIsDisable { get; set; } = false;
+
+  private int selectedRowNumber = -1;
+
+  private MudTable<Alumno> mudTable;
+
+  //17438306
+  //public int NewNroDeReserva;
+
+  public async Task FinalizarReserva()
+  {
+    btnConfirmarIsDisable = true;
+
+    string CuilTitular = alumnos.FirstOrDefault().CuilTitular.ToString();
+
+    if (CuilTitular != null) // Verifica que haya un alumno en la lista
+    {
+      int Estado = alumnos.Where(x => x.Edad >= 16).Count() > 0 ? 2 : 0;
+      int NewNroDeReserva = await SindicatoService.SetReservaMochila(CuilTitular, NroDeCelular, Estado);
+      bool alumnoMochila = await SindicatoService.SetAlumnoMochila(alumnos, NewNroDeReserva);
+      NroDeReserva = NewNroDeReserva;
+     //await GuardarFoto(NewNroDeReserva); // Guardo la foto en disco
+      if (true)//alumnoMochila)
+      {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add("Su reserva fue EXITOSA", Severity.Success);
+
+        await UploadFiles(_files2,"comprobantes");
+
+        MudDialog.Close();
+        NavigationManager.NavigateTo("/");
+        return;
+        // Aqui hay que mostrar que la reserva ofue exitosa como hacemos
+
+      }
+
+    }
+    else
+    {
+      //     // Manejar el caso en que la lista de alumnos está vacía
+      //     // Por ejemplo, mostrar un mensaje de error al usuario.
+      //     Console.WriteLine("La lista de alumnos está vacía.");
+    }
+
+    // await OnReservaConfirmada.InvokeAsync(alumnos);
+  }
+
+  IList<IBrowserFile> _files = new List<IBrowserFile>();
+
+  public DialogInfo()
+  {
+  }
+
+  // public void UploadFiles(IBrowserFile file)
+  // {
+  //   _files.Add(file);
+  //   //   //TODO upload the files to the server
+  // }
+
+
+  // async Task GuardarFoto(int NroReserva)
+  // {
+  //   if (_files.Count == 0)
+  //   {
+  //     // Mostrar mensaje de error: No se han seleccionado archivos.
+  //     return;
+  //   }
+
+  //   foreach (var file in _files) // Itera sobre la lista de archivos
+  //   {
+  //     try
+  //     {
+  //       var fileName = Path.GetFileName(file.Name);
+  //       var newFileName = $"{NroReserva}_{Path.GetExtension(file.Name)}"; // Formato de fecha para evitar caracteres inválidos en nombres de archivo
+  //       var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pictures", "Mochilas", "Comprobantes", newFileName);
+
+  //       Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pictures", "Mochilas", "Comprobantes")); // Asegurar que el directorio existe
+
+  //       await using FileStream fs = new(filePath, FileMode.Create);
+  //       await file.OpenReadStream().CopyToAsync(fs);
+
+  //       // Opcional: Guardar la ruta en la base de datos, etc.
+  //       //       Console.WriteLine($"Archivo guardado: {filePath}"); // Mensaje de confirmación
+
+  //     }
+  //     catch (Exception ex)
+  //     {
+  //       Console.WriteLine($"Error al subir el archivo {file.Name}: {ex.Message}");
+  //       // Mostrar mensaje de error al usuario
+  //     }
+  //   }
+  //   _files.Clear(); // Limpiar la lista después de guardar los archivos
+  // }
+
+
+  public async Task UploadFiles(IList<IBrowserFile> files, string subfolder = "")
+  {
+    try
+    {
+      using var content = new MultipartFormDataContent();
+
+      foreach (var file in files)
+      {
+        
+        var newFileName = $"{NroDeReserva}_{DateTime.Now.ToString("yyyyMMddhhmmssff")}{Path.GetExtension(file.Name)}";
+        var fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024)); // 5MB limit. Adjust as needed.
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+        content.Add(fileContent, "files", newFileName); // "files" MUST match @RequestPart("files")
+      }
+
+      @* if (!string.IsNullOrEmpty(subfolder))
+        {
+            content.Add(new StringContent(subfolder), "subfolder"); // Add subfolder parameter
+        } *@
+      @* content.Add(new StringContent(subfolder), "subfolder"); // Add subfolder parameter *@
+
+      using var client = new HttpClient();
+      var response = await client.PostAsync("http://secsantiago.com.ar:8080/api/v1/upload-files?subfolder=" + subfolder, content);
+
+      @* using var client = new HttpClient();
+        // Set the base address of your API
+        client.BaseAddress = new Uri("http://localhost:8080/api/v1");  // Replace with your API URL
+
+        using var response = await client.PostAsync("/upload-files", content); // Your API endpoint *@
+
+      if (response.IsSuccessStatusCode)
+      {
+        var result = await response.Content.ReadAsStringAsync();
+        Console.WriteLine("Upload successful: " + result);
+        // Optionally, deserialize the JSON response if your API returns a more complex object.
+        // Example:
+        // var uploadResult = await response.Content.ReadFromJsonAsync<YourResultType>();
+      }
+      else
+      {
+        var errorContent = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"Upload failed: {response.StatusCode} - {errorContent}");
+        // Handle error, display message to user, etc.
+        // Example:
+        // Console.WriteLine($"Error: {response.ReasonPhrase}");
+        // if (response.Content != null)
+        // {
+        //     var errorDetails = await response.Content.ReadAsStringAsync();
+        //     Console.WriteLine($"Error Details: {errorDetails}");
+        // }
+      }
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine("Exception during upload: " + ex.Message);
+      // Handle exception, display message to user, etc.
+    }
+  }
+
+
+
+
+
+
+
+  // private IBrowserFile file;
+  // private string _fileName;
+  // private string _imageUrl;
+  // private bool _isUploading;
+
+  // private async Task OnImageUploaded(IList<IBrowserFile> files)
+  // {
+  //   _isUploading = true;
+
+  //   file = files.FirstOrDefault();
+  //   if (file != null)
+  //   {
+  //     _fileName = file.Name;
+  //     var content = new MultipartFormDataContent();
+  //     content.Add(new StreamContent(file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024)), "files", file.Name);
+
+  //     using var client = new HttpClient();
+  //     var response = await client.PostAsync("http://localhost:8080/api/v1/upload-files?subfolder=", content);
+
+  //     if (response.IsSuccessStatusCode)
+  //     {
+  //       _imageUrl = $"http://localhost:8080/api/v1/download/{_fileName}";
+  //     }
+  //     else
+  //     {
+  //       // Manejar error
+  //       Console.WriteLine($"Error: {response.StatusCode}");
+  //     }
+  //   }
+  //   _isUploading = false;
+  // }
+
+
+
+}
+
