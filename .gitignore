@@ -297,3 +297,6 @@ gemini_temp/
 
 # Azure Functions
 func/
+
+# Published application output
+publish_output/
