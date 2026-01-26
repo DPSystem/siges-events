@@ -1,3 +1,5 @@
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Authorization
 @page "/reservas"
 
 @using PruebaMudBlazor2.Shared.Models
@@ -17,17 +19,12 @@
   <MudCard>
     <MudCardContent>
       <div class="user-validate">
-        <MudTextField @bind-Value="@NroDni" Label="DNI" PlaceHolder="Ingresa tu DNI" Reverse="false"
-                      tabindex="0" Disabled="@btnValidarVisible"
-                      OnKeyDown="OnKeyPressHandler"
-                      MaxLength="8" @ref="txtDni"></MudTextField>
-        <MudButton Variant="Variant.Filled"
-                   Raised @onclick="ValidarUsuario" EndIcon="@Icons.Material.Filled.Check"
-                   @bind-Disabled="@btnValidarVisible">Validar</MudButton>
-        <MudButton Variant="Variant.Filled"
-                   Raised OnClick="Limpiar" EndIcon="@Icons.Material.Filled.Close"
-                   Color="Color.Error"
-                   Disabled="@(btnCancelIsDisable)">Cancelar</MudButton>
+        <MudTextField @bind-Value="@NroDni" Label="DNI" PlaceHolder="Ingresa tu DNI" Reverse="false" tabindex="0"
+          Disabled="@btnValidarVisible" OnKeyDown="OnKeyPressHandler" MaxLength="8" @ref="txtDni"></MudTextField>
+        <MudButton Variant="Variant.Filled" Raised @onclick="ValidarUsuario" EndIcon="@Icons.Material.Filled.Check"
+          @bind-Disabled="@btnValidarVisible">Validar</MudButton>
+        <MudButton Variant="Variant.Filled" Raised OnClick="Limpiar" EndIcon="@Icons.Material.Filled.Close"
+          Color="Color.Error" Disabled="@(btnCancelIsDisable)">Cancelar</MudButton>
       </div>
     </MudCardContent>
   </MudCard>
@@ -50,8 +47,12 @@
             <MudCard>
               <MudCardMedia Image="@imagenSrc" alt="Foto" ObjectFit="ObjectFit.ScaleDown" Height="300" />
               <MudCardContent>
-                <MudText><h4>SOCIO Nº @maesoc.MaesocNroafil</h4></MudText>
-                <MudText><h3>@maesoc.Apenom</h3></MudText>
+                <MudText>
+                  <h4>SOCIO Nº @maesoc.MaesocNroafil</h4>
+                </MudText>
+                <MudText>
+                  <h3>@maesoc.Apenom</h3>
+                </MudText>
               </MudCardContent>
             </MudCard>
           </div>
@@ -78,218 +79,220 @@
 
 @code {
 
-    private MudTextField<string?> txtDni;
-    private bool btnCancelIsDisable = true;
+  private MudTextField<string?> txtDni;
+  private bool btnCancelIsDisable = true;
 
-    protected override async Task OnInitializedAsync()
+  protected override async Task OnInitializedAsync()
+  {
+    NroDeReserva = -1;
+    Reserva = new EventosCupone();
+    Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+    btnValidarVisible = true;
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
     {
-        NroDeReserva = -1;
-        Reserva = new EventosCupone();
-        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-        btnValidarVisible = true;
+      btnValidarVisible = false;
+      StateHasChanged();
+      await txtDni.FocusAsync();
     }
+  }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+  private GrupoFamiliar.CicloSeleccionadoEventArgs cicloSeleccionadoEventArgs = new
+  GrupoFamiliar.CicloSeleccionadoEventArgs();
+
+  private async Task ActualizarAlumno(GrupoFamiliar.CicloSeleccionadoEventArgs cicloSeleccionadoEventArgs)
+  {
+    this.cicloSeleccionadoEventArgs.Alumnos = cicloSeleccionadoEventArgs.Alumnos;
+    this.cicloSeleccionadoEventArgs.Files = cicloSeleccionadoEventArgs.Files;
+    btnConfirmarIsVisible = true;
+    await OpenDialogAsync();
+
+    StateHasChanged();
+  }
+
+  Maesoc maesoc = new Maesoc();
+  Foto fotoTitular = new Foto();
+  public string EstadoSocio;
+  public string NroDeSocio;
+  public bool EsSocio = false;
+  private bool _isLoading = false;
+  public bool ExisteEmpleado;
+  public bool TieneNroDeSocio = true;
+  public string imagenSrc;
+  public string? NroDni { get; set; } = "";
+  public List<Alumno>? ALumnos;
+  public List<EventosCupone>? EnAprobacion;
+  public int NroDeReserva = 0;
+
+  public async Task ValidarUsuario()
+  {
+    if (NroDni != null)
     {
-        if (firstRender)
+      _isLoading = true;
+      btnValidarVisible = true;
+
+      maesoc = await SociosApi.GetSocioByDniAsync(NroDni);
+
+      if (maesoc != null)
+      {
+        ExisteEmpleado = true;
+
+        var foto = await SociosApi.GetFotoTitularAsync(maesoc.MaesocCuil);
+        if (foto == null)
         {
-            btnValidarVisible = false;
-            StateHasChanged();
-            await txtDni.FocusAsync();
-        }
-    }
-
-    private GrupoFamiliar.CicloSeleccionadoEventArgs cicloSeleccionadoEventArgs = new GrupoFamiliar.CicloSeleccionadoEventArgs();
-
-    private async Task ActualizarAlumno(GrupoFamiliar.CicloSeleccionadoEventArgs cicloSeleccionadoEventArgs)
-    {
-        this.cicloSeleccionadoEventArgs.Alumnos = cicloSeleccionadoEventArgs.Alumnos;
-        this.cicloSeleccionadoEventArgs.Files = cicloSeleccionadoEventArgs.Files;
-        btnConfirmarIsVisible = true;
-        await OpenDialogAsync();
-
-        StateHasChanged();
-    }
-
-    Maesoc maesoc = new Maesoc();
-    Foto fotoTitular = new Foto();
-    public string EstadoSocio;
-    public string NroDeSocio;
-    public bool EsSocio = false;
-    private bool _isLoading = false;
-    public bool ExisteEmpleado;
-    public bool TieneNroDeSocio = true;
-    public string imagenSrc;
-    public string? NroDni { get; set; } = "";
-    public List<Alumno>? ALumnos;
-    public List<EventosCupone>? EnAprobacion;
-    public int NroDeReserva = 0;
-
-    public async Task ValidarUsuario()
-    {
-        if (NroDni != null)
-        {
-            _isLoading = true;
-            btnValidarVisible = true;
-
-            maesoc = await SociosApi.GetSocioByDniAsync(NroDni);
-
-            if (maesoc != null)
-            {
-                ExisteEmpleado = true;
-
-                var foto = await SociosApi.GetFotoTitularAsync(maesoc.MaesocCuil);
-                if (foto == null)
-                {
-                    imagenSrc = "https://fileserver.secsantiago.com.ar/api/v1/download/0.png";
-                }
-                else
-                {
-                    imagenSrc = "https://fileserver.secsantiago.com.ar/api/v1/download/titulares_" + maesoc.MaesocCuil.ToString().Trim() + ".png";
-                }
-
-                EsSocio = await SociosApi.EsSocioActivoAsync(NroDni);
-
-                if (EsSocio)
-                {
-                    if (await SociosApi.GetCarenciaAsync(maesoc.MaesocCuil))
-                    {
-                        if (await SociosApi.CumpleConAporteMinimoAsync(maesoc.MaesocCuil))
-                        {
-                            NroDeReserva = await ReservasApi.GetNroDeReservaPorCuilAsync(maesoc.MaesocCuil);
-
-                            if (NroDeReserva == 0)
-                            {
-                                ALumnos = await AlumnosApi.GetAlumnosPorCuilAsync(maesoc.MaesocCuil);
-                            }
-                            else
-                            {
-                                Snackbar.Add("El socio SI Tiene Reserva", Severity.Info);
-                            }
-                            await VerificarVariable();
-                            btnCancelIsDisable = false;
-                        }
-                        else
-                        {
-                            Snackbar.Add("NO podes realizar tu Reserva - Tu Aporte no Cumple el Minimo de $10 000", Severity.Info);
-                            Limpiar();
-                        }
-                    }
-                    else
-                    {
-                        Snackbar.Add("NO podes realizar tu Reserva - NO Cumples con la Carencia", Severity.Info);
-                        Limpiar();
-                    }
-                }
-                else
-                {
-                    Snackbar.Add("NO es Socio", Severity.Error);
-                    Limpiar();
-                }
-            }
-            else
-            {
-                Snackbar.Add("El DNI Ingresado NO existe", Severity.Error);
-                Limpiar();
-            }
+          imagenSrc = "https://fileserver.secsantiago.com.ar/api/v1/download/0.png";
         }
         else
         {
-            imagenSrc = "Pictures/Titulares/0.png";
+          imagenSrc = "https://fileserver.secsantiago.com.ar/api/v1/download/titulares_" + maesoc.MaesocCuil.ToString().Trim() +
+          ".png";
         }
-        _isLoading = false;
-    }
 
-    private MudMessageBox _mudMessageBox;
-    private string _mensaje;
-    private string _Title;
-    private bool _showMessageBox = false;
+        EsSocio = await SociosApi.EsSocioActivoAsync(NroDni);
 
-    private async Task VerificarVariable()
-    {
-        if (NroDeReserva > 0)
+        if (EsSocio)
         {
-            Reserva = await ReservasApi.GetReservaAsync(NroDeReserva);
-            btnConfirmarIsVisible = false;
-            await OpenDialogAsync();
+          if (await SociosApi.GetCarenciaAsync(maesoc.MaesocCuil))
+          {
+            if (await SociosApi.CumpleConAporteMinimoAsync(maesoc.MaesocCuil))
+            {
+              NroDeReserva = await ReservasApi.GetNroDeReservaPorCuilAsync(maesoc.MaesocCuil);
+
+              if (NroDeReserva == 0)
+              {
+                ALumnos = await AlumnosApi.GetAlumnosPorCuilAsync(maesoc.MaesocCuil);
+              }
+              else
+              {
+                Snackbar.Add("El socio SI Tiene Reserva", Severity.Info);
+              }
+              await VerificarVariable();
+              btnCancelIsDisable = false;
+            }
+            else
+            {
+              Snackbar.Add("NO podes realizar tu Reserva - Tu Aporte no Cumple el Minimo de $10 000", Severity.Info);
+              Limpiar();
+            }
+          }
+          else
+          {
+            Snackbar.Add("NO podes realizar tu Reserva - NO Cumples con la Carencia", Severity.Info);
+            Limpiar();
+          }
         }
-    }
-
-    private void CerrarMessageBox()
-    {
-        _showMessageBox = false;
-    }
-
-    bool btnValidarVisible { get; set; } = false;
-    bool btnConfirmarIsVisible { get; set; } = false;
-    bool isReservado { get; set; } = false;
-    bool snackBarIsOpen = false;
-    bool dialogIsOpen = false;
-
-    void OpenDialog()
-    {
-        dialogIsOpen = true;
-    }
-
-    private EventosCupone Reserva;
-
-    private Task OpenDialogAsync()
-    {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var parameters = new DialogParameters<DialogInfo>
+        else
         {
-            { x => x.btnConfirmarIsVisible, btnConfirmarIsVisible },
-            { x => x.alumnos, ALumnos },
-            { x => x.socio, maesoc },
-            { x => x.EstadoReserva, Reserva },
-            { x => x._files2, cicloSeleccionadoEventArgs.Files }
-        };
-        return DialogService.ShowAsync<DialogInfo>("Simple Dialog", parameters, options);
-    }
-
-    private void OpenSnackBar()
-    {
-        Snackbar.Add("No estas registrado como socio", Severity.Error);
-    }
-
-    void EnableBtnValidar()
-    {
-        btnValidarVisible = true;
-        NroDeReserva = -1;
-        StateHasChanged();
-    }
-
-    void FinalizarReserva()
-    {
-        dialogIsOpen = true;
-        btnConfirmarIsVisible = true;
-        OpenDialogAsync();
-    }
-
-    private bool found = false;
-
-    private async void OnKeyPressHandler(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" && !btnValidarVisible)
-        {
-            await ValidarUsuario();
-            StateHasChanged();
+          Snackbar.Add("NO es Socio", Severity.Error);
+          Limpiar();
         }
+      }
+      else
+      {
+        Snackbar.Add("El DNI Ingresado NO existe", Severity.Error);
+        Limpiar();
+      }
     }
-
-    private async void Limpiar()
+    else
     {
-        NroDeReserva = -1;
-        btnValidarVisible = false;
-        btnCancelIsDisable = true;
-        _isLoading = false;
-        ALumnos = null;
-        await txtDni.Clear();
-        await txtDni.FocusAsync();
+      imagenSrc = "Pictures/Titulares/0.png";
     }
+    _isLoading = false;
+  }
 
-    private void OnEnterPressed()
+  private MudMessageBox _mudMessageBox;
+  private string _mensaje;
+  private string _Title;
+  private bool _showMessageBox = false;
+
+  private async Task VerificarVariable()
+  {
+    if (NroDeReserva > 0)
     {
-        Snackbar.Add($"Enter presionado. Valor ingresado: {NroDni}", Severity.Info);
+      Reserva = await ReservasApi.GetReservaAsync(NroDeReserva);
+      btnConfirmarIsVisible = false;
+      await OpenDialogAsync();
     }
+  }
+
+  private void CerrarMessageBox()
+  {
+    _showMessageBox = false;
+  }
+
+  bool btnValidarVisible { get; set; } = false;
+  bool btnConfirmarIsVisible { get; set; } = false;
+  bool isReservado { get; set; } = false;
+  bool snackBarIsOpen = false;
+  bool dialogIsOpen = false;
+
+  void OpenDialog()
+  {
+    dialogIsOpen = true;
+  }
+
+  private EventosCupone Reserva;
+
+  private Task OpenDialogAsync()
+  {
+    var options = new DialogOptions { CloseOnEscapeKey = true };
+    var parameters = new DialogParameters<DialogInfo>
+{
+{ x => x.btnConfirmarIsVisible, btnConfirmarIsVisible },
+{ x => x.alumnos, ALumnos },
+{ x => x.socio, maesoc },
+{ x => x.EstadoReserva, Reserva },
+{ x => x._files2, cicloSeleccionadoEventArgs.Files }
+};
+    return DialogService.ShowAsync<DialogInfo>("Simple Dialog", parameters, options);
+  }
+
+  private void OpenSnackBar()
+  {
+    Snackbar.Add("No estas registrado como socio", Severity.Error);
+  }
+
+  void EnableBtnValidar()
+  {
+    btnValidarVisible = true;
+    NroDeReserva = -1;
+    StateHasChanged();
+  }
+
+  void FinalizarReserva()
+  {
+    dialogIsOpen = true;
+    btnConfirmarIsVisible = true;
+    OpenDialogAsync();
+  }
+
+  private bool found = false;
+
+  private async void OnKeyPressHandler(KeyboardEventArgs e)
+  {
+    if (e.Key == "Enter" && !btnValidarVisible)
+    {
+      await ValidarUsuario();
+      StateHasChanged();
+    }
+  }
+
+  private async void Limpiar()
+  {
+    NroDeReserva = -1;
+    btnValidarVisible = false;
+    btnCancelIsDisable = true;
+    _isLoading = false;
+    ALumnos = null;
+    await txtDni.Clear();
+    await txtDni.FocusAsync();
+  }
+
+  private void OnEnterPressed()
+  {
+    Snackbar.Add($"Enter presionado. Valor ingresado: {NroDni}", Severity.Info);
+  }
 }

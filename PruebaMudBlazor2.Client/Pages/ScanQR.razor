@@ -1,4 +1,6 @@
-﻿@page "/scanqr"
+﻿@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Authorization
+@page "/scanqr"
 @inject Services.ISindicatoService SindicatoService
 
 @inject IJSRuntime JS
@@ -31,8 +33,8 @@
       <MudPaper Class="pa-5">
         <div class="qr-in">
 
-          <MudButton @onclick="StartScanning" Variant="Variant.Filled" Class="ma-5"
-                     Raised EndIcon="@Icons.Material.Filled.QrCodeScanner" Disabled="@(!_isConected)">
+          <MudButton @onclick="StartScanning" Variant="Variant.Filled" Class="ma-5" Raised
+            EndIcon="@Icons.Material.Filled.QrCodeScanner" Disabled="@(!_isConected)">
             Start QR Scanner
           </MudButton>
 
@@ -49,14 +51,12 @@
   <MudTabPanel Text="Manualmente" Icon="@Icons.Material.Outlined.Dialpad">
     <div class="">
       <MudPaper Class="pa-5 d-flex flexwrap">
-        <MudTextField @bind-Value="qrNroReserva" Label="Nro de reserva" 
-            Placeholder="Ingerse numero de reserva" @ref="txtNroReservaManual"
-                      Variant="Variant.Text" @onkeydown="@sendKeyEnter"
-                      Disabled="@(!_isConected && _isLoading)">
+        <MudTextField @bind-Value="qrNroReserva" Label="Nro de reserva" Placeholder="Ingerse numero de reserva"
+          @ref="txtNroReservaManual" Variant="Variant.Text" @onkeydown="@sendKeyEnter"
+          Disabled="@(!_isConected && _isLoading)">
         </MudTextField>
-        <MudButton @onclick="sendPrinting" Variant="Variant.Filled" Class="ma-5"
-                   Raised EndIcon="@Icons.Material.Filled.CheckCircleOutline" 
-                   Disabled="@(!_isConected && _isLoading)">
+        <MudButton @onclick="sendPrinting" Variant="Variant.Filled" Class="ma-5" Raised
+          EndIcon="@Icons.Material.Filled.CheckCircleOutline" Disabled="@(!_isConected && _isLoading)">
           Validar
         </MudButton>
       </MudPaper>
@@ -70,7 +70,7 @@
 </MudPaper>
 
 @code {
-  private MudTextField<string> txtNroReservaManual ;
+  private MudTextField<string> txtNroReservaManual;
 
   private string qrNroReserva;
   private List<string> printers = null;
@@ -143,7 +143,7 @@
 
       if (!estaReservado)
       {
-        var res = await  SindicatoService.GetReservaImpresion(Convert.ToInt32( result));
+        var res = await SindicatoService.GetReservaImpresion(Convert.ToInt32(result));
         // 1. pregunta si esta aprobada la reserva
 
         // 2. pregunta si no fue entregada ya y emitido el tiquet
@@ -158,7 +158,7 @@
 
           ApellidoNombreSocio = res.ApellidoNombreSocio,
 
-          dni=res.dni.ToString(),
+          dni = res.dni.ToString(),
 
           Familiares = res.Familiares.ToList(), /* new List<string> { "uno","dos","tres","cuatro" }, */
 
@@ -188,7 +188,7 @@
 
   }
 
-  public   class Reserva
+  public class Reserva
   {
     public string NroReserva { get; set; }
 
@@ -225,7 +225,8 @@
     if (qrResult != qrNroReserva)
 
     {
-      try {
+      try
+      {
 
         var estaReservado = await SindicatoService.YaFueEntregado(Convert.ToInt32(qrNroReserva));
 
@@ -291,7 +292,7 @@
 
     }
 
-   
+
 
   }
 
@@ -313,7 +314,7 @@
 
     }
   }
-  
+
 }
 
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using PruebaMudBlazor2.Data;
 using PruebaMudBlazor2.Shared.Models;
@@ -9,6 +10,7 @@ namespace PruebaMudBlazor2.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class SociosController : ControllerBase
     {
         private readonly SindicatoContext _context;
@@ -70,7 +72,7 @@ namespace PruebaMudBlazor2.Server.Controllers
         {
             DateTime mesDeCarencia = new DateTime(2024, 10, 1);
             var carencia = await _context.Ddjjs.FirstOrDefaultAsync(x => x.Cuil == cuil && x.Periodo >= mesDeCarencia);
-            
+
             if (carencia != null)
             {
                 return Ok(carencia.Item2);

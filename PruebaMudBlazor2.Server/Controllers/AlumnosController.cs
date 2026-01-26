@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using PruebaMudBlazor2.Data;
 using PruebaMudBlazor2.Shared; // Para FuncUtiles y AsignacionMochilaRequest
@@ -12,6 +13,7 @@ namespace PruebaMudBlazor2.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class AlumnosController : ControllerBase
     {
         private readonly SindicatoContext _context;
@@ -42,12 +44,13 @@ namespace PruebaMudBlazor2.Server.Controllers
 
             var alumnos = await socfliaQuery.ToListAsync();
 
-            alumnos.ForEach(x => {
+            alumnos.ForEach(x =>
+            {
                 x.URLImage = x.URLImage != null ? $"Pictures/Beneficiarios/{x.URLImage}.png" : "Pictures/Beneficiarios/0.png";
             });
 
             alumnos.RemoveAll(x => (x.FechaNac.HasValue && FuncUtiles.CalcularEdadMaternal(x.FechaNac.Value)) || x.Edad > 17);
-            
+
             return Ok(alumnos);
         }
 

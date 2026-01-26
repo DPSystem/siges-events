@@ -1,5 +1,8 @@
 ﻿@using MudBlazor
-@* @using MudBlazor.ThemeManager *@
+@using Microsoft.AspNetCore.Components.Authorization
+@using PruebaMudBlazor2.Client.Auth
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inherits LayoutComponentBase
 
 @* @using MudBlazor
@@ -20,49 +23,39 @@
 <MudSnackbarProvider />
 <MudLayout>
 
-  <MudAppBar Elevation="1">
+  <MudAppBar Elevation="0">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
       OnClick="@((e) => DrawerToggle())" />
     <MudText Typo="Typo.h5" Class="ml-3"></MudText>
-    <img src="/Images/logo-imagen.png" asp-append-version="true" />
-    <img src="/Images/logo-texto.png" asp-append-version="true" class="logo-texto hidden" />
-    <MudSpacer />
-    @* <MudMenu Label="Menu" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Menu"
-      EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Tertiary">
-      <MudMenuItem>
-        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home" Edge="Edge.End">Home
-        </MudNavLink>
-      </MudMenuItem>
-      <MudMenuItem>
-        <MudNavLink Href="reservas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Work" Edge="Edge.End">
-          Reserva Mochila</MudNavLink>
-      </MudMenuItem>
-      <MudMenuItem Disabled>
-        <MudNavLink Href="canet" Match="NavLinkMatch.Prefix" Disabled Icon="@Icons.Material.Outlined.Badge"
-          Edge="Edge.End">Carnets</MudNavLink>
-      </MudMenuItem>
-      <MudDivider />
-      <MudMenuItem Label="Item 1">
-        <MudNavLink Href="https://sasweb.com.ar" Match="NavLinkMatch.Prefix" Target="blank"
-          Icon="@Icons.Material.Outlined.Language" Edge="Edge.End">SAS Web</MudNavLink>
-      </MudMenuItem>
-    </MudMenu> *@
+    @* <img src="/Images/logo-imagen.png" asp-append-version="true" />
+    <img src="/Images/logo-texto.png" asp-append-version="true" class="logo-texto hidden" /> *@
     <MudSpacer />
     <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
+    <AuthorizeView>
+      <NotAuthorized>
+        <MudButton Color="Color.Inherit" Href="/login">Iniciar Sesión</MudButton>
+      </NotAuthorized>
+      <Authorized>
+        <MudText Class="mr-4">Hola, @context.User.Identity?.Name</MudText>
+        <MudButton Color="Color.Inherit" OnClick="Logout">Cerrar Sesión</MudButton>
+      </Authorized>
+    </AuthorizeView>
+
+
     @* <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" /> *@
   </MudAppBar>
   @* <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-  </MudDrawer> *@
+    </MudDrawer> *@
   <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
     <MudDrawerHeader>
       <MudText Typo="Typo.h6">Eventos SECSGO</MudText>
     </MudDrawerHeader>
     <NavMenu />
   </MudDrawer>
-  <MudMainContent Class="mt-12 pa-4">
-    <div class="body-body">
+  <MudMainContent>
+    <MudContainer MaxWidth="MaxWidth.False" Class="my-2 pt-2">
       @Body
-    </div>
+    </MudContainer>
   </MudMainContent>
   @* <Footer /> *@
 </MudLayout>
@@ -103,15 +96,15 @@
 
     @* _theme = new()
 
-    {
+        {
 
-      PaletteLight = _lightPalette,
+        PaletteLight = _lightPalette,
 
-      PaletteDark = _darkPalette,
+        PaletteDark = _darkPalette,
 
-      LayoutProperties = new LayoutProperties()
+        LayoutProperties = new LayoutProperties()
 
-    }; *@
+        }; *@
 
 
 
@@ -148,8 +141,8 @@
   private readonly PaletteLight _lightPalette = new()
   {
     @* Primary = Colors.Indigo.Default,
-            Secondary = Colors.Blue.Accent4,
-            AppbarBackground =Colors.Indigo.Default, *@
+                Secondary = Colors.Blue.Accent4,
+                AppbarBackground =Colors.Indigo.Default, *@
     Primary = "#242C4F",
     Secondary = Colors.BlueGray.Darken1,
     Tertiary = "#FDF7F7FF",
@@ -219,16 +212,14 @@
   };
 
   @* protected override async Task OnAfterRenderAsync(bool firstRender)
-{
-    if (firstRender)
-        await JS.InvokeVoidAsync("loadScript", "JSFILENAME.js");
-} *@
+    {
+        if (firstRender)
+            await JS.InvokeVoidAsync("loadScript", "JSFILENAME.js");
+    } *@
 
   @* private ThemeManagerTheme _themeManager = new ThemeManagerTheme(); *@
 
   public bool _themeManagerOpen = false;
-
-
 
   void OpenThemeManager(bool value)
 
@@ -238,23 +229,14 @@
 
   }
 
-
-
-  @* void UpdateTheme(ThemeManagerTheme value)
-
+  private async Task Logout()
   {
-
-    _themeManager = value;
-
-    StateHasChanged();
-
-  } *@
-
-  @* protected override void OnInitialized()
-{
-    StateHasChanged();
-} *@
+    var apiAuth = (ApiAuthenticationStateProvider)AuthenticationStateProvider;
+    await apiAuth.MarkUserAsLoggedOut();
+    NavigationManager.NavigateTo("/login", forceLoad: false);
+  }
 }
+
 
 
 

@@ -1,22 +1,27 @@
 ﻿<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Search">
-        Dónde voto?</MudNavLink>
-
-    <MudNavLink Href="reservas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Work" Edge="Edge.End">
-        Reserva Mochila</MudNavLink>
+    @* <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Search">
+        Dónde voto?</MudNavLink> *@
 
 
-    <MudDivider />
+
+
+    @* <MudDivider />
 
     <MudNavLink Href="https://sasweb.com.ar" Match="NavLinkMatch.Prefix" Target="blank"
-        Icon="@Icons.Material.Outlined.Language" Edge="Edge.End">SAS Web</MudNavLink>
+        Icon="@Icons.Material.Outlined.Language" Edge="Edge.End">SAS Web</MudNavLink> *@
 
 </MudNavMenu>
 
-@* <AuthorizeView Roles="Admin">
+<AuthorizeView Roles="Admin">
     <Authorized>
         <MudNavMenu>
-            <MudNavLink Href="/dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Dashboard">Dashboard
+            <MudNavLink Href="reservas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Work"
+                Edge="Edge.End">
+                Reserva Mochila</MudNavLink>
+            <MudNavLink Href="scanqr" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.QrCode2"
+                Edge="Edge.End">
+                Scan QR</MudNavLink>
+            @* <MudNavLink Href="/dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Dashboard">Dashboard
             </MudNavLink>
             <MudNavLink Href="/estadisticas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Analytics">
                 Estadísticas</MudNavLink>
@@ -42,11 +47,12 @@
                     Icon="@Icons.Material.Filled.People">Movilización</MudNavLink>
                 <MudNavLink Href="/reporte-votantes-empresa" Match="NavLinkMatch.Prefix"
                     Icon="@Icons.Material.Filled.Business">Votantes por Empresa</MudNavLink>
-            </MudNavGroup>
+            </MudNavGroup> *@
         </MudNavMenu>
     </Authorized>
 </AuthorizeView>
 
+@* 
 <AuthorizeView Roles="Fiscal">
     <Authorized>
         <MudNavMenu>

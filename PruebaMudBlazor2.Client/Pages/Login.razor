@@ -1,0 +1,87 @@
+@page "/login"
+@inject NavigationManager NavigationManager
+@inject PruebaMudBlazor2.Client.Services.AuthService AuthService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using MudBlazor
+@using PruebaMudBlazor2.Client.DTOs
+@using PruebaMudBlazor2.Client.Auth
+@inject IConfiguration Configuration
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="d-flex align-center justify-center" Style="height: 100vh;">
+    <MudPaper Elevation="6" Class="pa-8" Style="width: 100%; max-width: 400px;">
+        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Iniciar Sesión</MudText>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+            }
+            <MudTextField T="string" Label="Correo Electrónico" @bind-Value="loginRequest.Email"
+                For="@(() => loginRequest.Email)" Required="true" RequiredError="El correo electrónico es requerido."
+                InputType="InputType.Email" Validation="@(new Func<string, string>(EmailValidation))" Class="mb-4" />
+            <MudTextField T="string" Label="Contraseña" @bind-Value="loginRequest.Password"
+                For="@(() => loginRequest.Password)" Required="true" RequiredError="La contraseña es requerida."
+                InputType="InputType.Password" Class="mb-4" />
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+                Class="mt-4 mud-width-full" Disabled="@(!success || loading)" OnClick="HandleLogin">
+                @if (loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">Iniciando sesión...</MudText>
+                }
+                else
+                {
+                    <MudText>Iniciar Sesión</MudText>
+                }
+            </MudButton>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    MudForm form;
+    bool success;
+    string[] errors = { };
+    bool loading = false;
+    string errorMessage = string.Empty;
+
+    private LoginRequest loginRequest = new LoginRequest();
+
+    protected override void OnInitialized()
+    {
+        loginRequest.ClientId = Configuration["ClientId"];
+    }
+
+    private async Task HandleLogin()
+    {
+        loading = true;
+        errorMessage = string.Empty; // Clear previous errors
+        await form.Validate();
+
+        if (success)
+        {
+            loginRequest.Audience = Configuration["ApiConfiguration:BaseUrl"];
+            var result = await AuthService.Login(loginRequest);
+
+            if (result.IsAuthSuccessful)
+            {
+                var apiAuth = (ApiAuthenticationStateProvider)AuthenticationStateProvider;
+                await apiAuth.MarkUserAsAuthenticated(result.Token);
+                NavigationManager.NavigateTo("/", forceLoad: false); // Redirect to home page
+            }
+            else
+            {
+                errorMessage = result.ErrorMessage ?? "Error desconocido al iniciar sesión.";
+            }
+        }
+        loading = false;
+    }
+
+    private string EmailValidation(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return "El correo electrónico es requerido.";
+        if (!email.Contains("@") || !email.Contains("."))
+            return "Formato de correo electrónico inválido.";
+        return null;
+    }
+}

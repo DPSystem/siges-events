@@ -296,3 +296,6 @@ secrets.json
 
 # Gemini CLI temporary files
 gemini_temp/
+
+# Published application output
+publish_output/

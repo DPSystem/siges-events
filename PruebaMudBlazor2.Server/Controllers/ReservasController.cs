@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PruebaMudBlazor2.Data;
@@ -11,6 +12,7 @@ namespace PruebaMudBlazor2.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class ReservasController : ControllerBase
     {
         private readonly SindicatoContext _context;
@@ -93,7 +95,7 @@ namespace PruebaMudBlazor2.Server.Controllers
             if (datosSocio == null) return NotFound("Socio no encontrado.");
 
             var mochilas = await _context.CuponBenefArticulos.Where(x => x.NroCupon == nroReserva && x.EventoId == 6).ToListAsync();
-            
+
             var familiaTasks = mochilas.Select(async item => (await _context.Articulos.FindAsync(item.ArticuloId))?.Id.ToString()).ToList();
             var regalosTasks = mochilas.Select(async item => (await _context.Articulos.FindAsync(item.ArticuloId))?.Descripcion).ToList();
 
@@ -117,7 +119,7 @@ namespace PruebaMudBlazor2.Server.Controllers
 
             return Ok(resParaImp);
         }
-        
+
         // Reemplaza a YaFueEntregado(int NroDeReserva)
         [HttpGet("{nroReserva:int}/fueentregado")]
         public async Task<ActionResult<bool>> YaFueEntregado(int nroReserva)
