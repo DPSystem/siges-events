@@ -63,6 +63,8 @@ builder.Services.AddScoped<IAlumnosApiClient, AlumnosApiClient>(sp =>
     new AlumnosApiClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiHttpClient")));
 builder.Services.AddScoped<ISindicatoService, SindicatoService>(sp =>
     new SindicatoService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiHttpClient")));
+builder.Services.AddScoped<IEventosApiClient, EventosApiClient>(sp =>
+    new EventosApiClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiHttpClient")));
 
 
 // Register services of MudBlazor

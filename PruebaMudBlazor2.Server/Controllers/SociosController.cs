@@ -54,6 +54,19 @@ namespace PruebaMudBlazor2.Server.Controllers
             return Ok(maesoc.SoccenEstado == 1);
         }
 
+        [HttpGet("cuil/{cuil:double}")]
+        public async Task<ActionResult<Maesoc>> GetSocioByCuil(double cuil)
+        {
+            var socio = await _context.Maesocs.FirstOrDefaultAsync(x => x.MaesocCuil == cuil);
+
+            if (socio == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(socio);
+        }
+
         // Reemplaza a GetFotoTitular(double NroCuil)
         [HttpGet("{cuil:double}/foto")]
         public async Task<ActionResult<Foto>> GetFotoTitular(double cuil)

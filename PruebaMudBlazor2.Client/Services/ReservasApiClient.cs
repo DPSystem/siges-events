@@ -16,9 +16,9 @@ namespace PruebaMudBlazor2.Client.Services
             _httpClient = httpClient;
         }
 
-        public async Task<EventosCupone?> GetReservaAsync(int nroReserva)
+        public async Task<EventosCupone?> GetReservaAsync(int nroReserva, int eventosAñoId)
         {
-            var response = await _httpClient.GetAsync($"api/reservas/{nroReserva}");
+            var response = await _httpClient.GetAsync($"api/reservas/{nroReserva}/{eventosAñoId}");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<EventosCupone>();
@@ -31,9 +31,9 @@ namespace PruebaMudBlazor2.Client.Services
             return await _httpClient.GetFromJsonAsync<List<EventosCupone>>("api/reservas/pendientes") ?? new List<EventosCupone>();
         }
 
-        public async Task<int> GetNroDeReservaPorCuilAsync(double cuil)
+        public async Task<int> GetNroDeReservaPorCuilAsync(double cuil, int eventosAñoId)
         {
-            var response = await _httpClient.GetFromJsonAsync<int>($"api/reservas/socio/{cuil}");
+            var response = await _httpClient.GetFromJsonAsync<int>($"api/reservas/socio/{cuil}/{eventosAñoId}");
             return response;
         }
 

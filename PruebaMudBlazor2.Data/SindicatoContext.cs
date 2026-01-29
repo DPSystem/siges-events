@@ -312,10 +312,10 @@ public partial class SindicatoContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-    //modelBuilder.HasDbFunction(typeof(Services.FuncUtiles).GetMethod("CalcularEdad"))
-    //.HasName("dbo.CalcularEdad"); // Nombre de la funci�n en la base de datos
+        //modelBuilder.HasDbFunction(typeof(Services.FuncUtiles).GetMethod("CalcularEdad"))
+        //.HasName("dbo.CalcularEdad"); // Nombre de la funci�n en la base de datos
 
-    modelBuilder.UseCollation("Modern_Spanish_CI_AS");
+        modelBuilder.UseCollation("Modern_Spanish_CI_AS");
 
         modelBuilder.Entity<Acta>(entity =>
         {
@@ -1421,7 +1421,7 @@ public partial class SindicatoContext : DbContext
 
         modelBuilder.Entity<EventosAño>(entity =>
         {
-            entity.ToTable("EventosA�o");
+            entity.ToTable("EventosAño");
 
             entity.Property(e => e.Comentario)
                 .HasMaxLength(300)

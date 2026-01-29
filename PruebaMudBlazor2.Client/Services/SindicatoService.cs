@@ -1,3 +1,4 @@
+using PruebaMudBlazor2.Shared;
 using PruebaMudBlazor2.Shared.Models;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -15,28 +16,34 @@ namespace PruebaMudBlazor2.Client.Services
             _httpClient = httpClient;
         }
 
-        public async Task<int> SetReservaMochila(string cuil, string celular, int estado)
+        public async Task<int> SetReservaMochila(string cuil, string celular, int estado, int eventosAñoId)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/sindicato/reserva-mochila", new { cuil, celular, estado });
+            var response = await _httpClient.PostAsJsonAsync("api/reservas", new ReservaRequest { CuilTitular = cuil, NroDeCelular = celular, Estado = estado, EventosAñoId = eventosAñoId });
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<int>();
         }
 
-        public async Task<bool> SetAlumnoMochila(List<Alumno> alumnos, int nroReserva)
+        public async Task<bool> SetAlumnoMochila(List<Alumno> alumnos, int nroReserva, int eventosAñoId)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/sindicato/alumno-mochila", new { alumnos, nroReserva });
+            var request = new AsignacionMochilaRequest
+            {
+                Alumnos = alumnos,
+                NroDeReserva = nroReserva,
+                EventosAñoId = eventosAñoId
+            };
+            var response = await _httpClient.PostAsJsonAsync("api/alumnos/mochilas", request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<bool>();
         }
 
-        public async Task<EventosCupone> GetReservaPorCupon(int nroCupon)
+        public async Task<EventosCupone> GetReservaPorCupon(int nroCupon, int eventosAñoId)
         {
-            return await _httpClient.GetFromJsonAsync<EventosCupone>($"api/sindicato/reserva/{nroCupon}");
+            return await _httpClient.GetFromJsonAsync<EventosCupone>($"api/reservas/{nroCupon}/{eventosAñoId}");
         }
 
         public async Task<Maesoc> GetSocioPorCuil(double cuil)
         {
-            return await _httpClient.GetFromJsonAsync<Maesoc>($"api/sindicato/socio/{cuil}");
+            return await _httpClient.GetFromJsonAsync<Maesoc>($"api/socios/cuil/{cuil}");
         }
 
         public async Task<List<EventosCupone>> GetReservasPendientes()
@@ -44,14 +51,14 @@ namespace PruebaMudBlazor2.Client.Services
             return await _httpClient.GetFromJsonAsync<List<EventosCupone>>("api/reservas/pendientes");
         }
 
-        public async Task<bool> YaFueEntregado(int nroReserva)
+        public async Task<bool> YaFueEntregado(int nroReserva, int eventosAñoId)
         {
-            return await _httpClient.GetFromJsonAsync<bool>($"api/reservas/{nroReserva}/fueentregado");
+            return await _httpClient.GetFromJsonAsync<bool>($"api/reservas/{nroReserva}/fueentregado/{eventosAñoId}");
         }
 
-        public async Task<ReservaParaImprimir> GetReservaImpresion(int nroReserva)
+        public async Task<ReservaParaImprimir> GetReservaImpresion(int nroReserva, int eventosAñoId)
         {
-            return await _httpClient.GetFromJsonAsync<ReservaParaImprimir>($"api/reservas/{nroReserva}/impresion");
+            return await _httpClient.GetFromJsonAsync<ReservaParaImprimir>($"api/reservas/{nroReserva}/impresion/{eventosAñoId}");
         }
     }
 }

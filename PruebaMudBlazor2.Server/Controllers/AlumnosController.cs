@@ -39,7 +39,18 @@ namespace PruebaMudBlazor2.Server.Controllers
                   Apenom = $"{b.MaefliaApellido.Trim()} {b.MaefliaNombre.Trim()}",
                   FechaNac = Convert.ToDateTime(b.MaefliaFecnac),
                   Mochila = 0,
-                  URLImage = f.FotosCodfliar.ToString()
+                  URLImage = f.FotosCodfliar.ToString() ?? string.Empty,
+                  NroSocio = string.Empty,
+                  Apellido = string.Empty,
+                  Nombre = string.Empty,
+                  Domicilio = string.Empty,
+                  Telefono = string.Empty,
+                  Sexo = string.Empty,
+                  Mail = string.Empty,
+                  Celular = string.Empty,
+                  Foto = string.Empty,
+                  Dni = string.Empty,
+                  CicloEscolar = string.Empty
               };
 
             var alumnos = await socfliaQuery.ToListAsync();
@@ -65,6 +76,23 @@ namespace PruebaMudBlazor2.Server.Controllers
 
             try
             {
+                // Buscar la reserva para obtener el EventoId dinámicamente
+                var reserva = await _context.EventosCupones
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(c => c.EventCuponNro == request.NroDeReserva && c.EventcuponEventoId == request.EventosAñoId);
+
+                if (reserva == null)
+                {
+                    return BadRequest("El número de reserva no existe.");
+                }
+
+                if (reserva.EventcuponEventoId == null)
+                {
+                    return BadRequest("La reserva no tiene un evento asociado.");
+                }
+
+                var eventoId = reserva.EventcuponEventoId; // ID del evento dinámico
+
                 var cbaList = new List<CuponBenefArticulo>();
 
                 foreach (var alumno in request.Alumnos)
@@ -75,7 +103,7 @@ namespace PruebaMudBlazor2.Server.Controllers
                         Cuil = Convert.ToString(alumno.CuilTitular),
                         CodigoFliar = alumno.CodiGoDeFamiliar,
                         ArticuloId = alumno.Mochila, // Guarda el Id de la mochila
-                        EventoId = 6,
+                        EventoId = eventoId, // Usar el ID del evento obtenido de la reserva
                         Estado = 0  // 0-NO ENTREGADO, 1-Entregado, 2-Pendiente, 3-NO APROBADO
                     });
                 }

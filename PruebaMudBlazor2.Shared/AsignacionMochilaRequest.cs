@@ -7,5 +7,6 @@ namespace PruebaMudBlazor2.Shared
     {
         public List<Alumno> Alumnos { get; set; }
         public int NroDeReserva { get; set; }
+        public int EventosAñoId { get; set; }
     }
 }
