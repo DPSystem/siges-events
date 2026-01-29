@@ -23,10 +23,10 @@ namespace PruebaMudBlazor2.Server.Controllers
         }
 
         // Reemplaza a GetReservaEstado(int NroDeCupon)
-        [HttpGet("{nroReserva:int}")]
-        public async Task<ActionResult<EventosCupone>> GetReserva(int nroReserva)
+        [HttpGet("{nroReserva:int}/{eventosAñoId:int}")]
+        public async Task<ActionResult<EventosCupone>> GetReserva(int nroReserva, int eventosAñoId)
         {
-            var reserva = await _context.EventosCupones.FirstOrDefaultAsync(x => x.EventCuponNro == nroReserva && x.EventcuponEventoId == 6);
+            var reserva = await _context.EventosCupones.FirstOrDefaultAsync(x => x.EventCuponNro == nroReserva && x.EventcuponEventoId == eventosAñoId);
             if (reserva == null)
             {
                 return NotFound();
@@ -43,10 +43,10 @@ namespace PruebaMudBlazor2.Server.Controllers
         }
 
         // Reemplaza a GetNroDeReserva(double cuil)
-        [HttpGet("socio/{cuil:double}")]
-        public async Task<ActionResult<int>> GetNroDeReservaPorCuil(double cuil)
+        [HttpGet("socio/{cuil:double}/{eventosAñoId:int}")]
+        public async Task<ActionResult<int>> GetNroDeReservaPorCuil(double cuil, int eventosAñoId)
         {
-            var reserva = await _context.EventosCupones.FirstOrDefaultAsync(x => x.EventcuponEventoId == 6 && x.EventcuponMaesocCuil == cuil);
+            var reserva = await _context.EventosCupones.FirstOrDefaultAsync(x => x.EventcuponEventoId == eventosAñoId && x.EventcuponMaesocCuil == cuil);
             if (reserva != null)
             {
                 return Ok(reserva.EventCuponNro);
@@ -58,16 +58,25 @@ namespace PruebaMudBlazor2.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<int>> CrearReserva([FromBody] PruebaMudBlazor2.Shared.ReservaRequest request)
         {
-            int nroDeCupon = 1;
-            if (await _context.EventosCupones.AnyAsync(x => x.EventcuponEventoId == 6))
+            // Get EventosAño entity
+            var eventosAño = await _context.EventosAños.FirstOrDefaultAsync(ea => ea.Id == request.EventosAñoId);
+            if (eventosAño == null)
             {
-                nroDeCupon = await _context.EventosCupones.Where(x => x.EventcuponEventoId == 6).MaxAsync(x => x.EventCuponNro) + 1;
+                return BadRequest("EventosAñoId inválido.");
+            }
+
+            int eventoId = eventosAño.Id; // Use the primary key of EventosAño
+
+            int nroDeCupon = 1;
+            if (await _context.EventosCupones.AnyAsync(x => x.EventcuponEventoId == eventoId))
+            {
+                nroDeCupon = await _context.EventosCupones.Where(x => x.EventcuponEventoId == eventoId).MaxAsync(x => x.EventCuponNro) + 1;
             }
 
             EventosCupone nuevaReserva = new EventosCupone
             {
                 EventCuponNro = nroDeCupon,
-                EventcuponEventoId = 6,
+                EventcuponEventoId = eventoId, // Use the dynamically fetched EventoId
                 EventcuponMaesocCuil = Convert.ToDouble(request.CuilTitular),
                 EventcuponMaefliaCodfliar = 0,
                 EventCuponFecha = DateTime.Now,
@@ -85,22 +94,24 @@ namespace PruebaMudBlazor2.Server.Controllers
         }
 
         // Reemplaza a GetReservaImpresion
-        [HttpGet("{nroReserva:int}/impresion")]
-        public async Task<ActionResult<ReservaParaImprimir>> GetReservaParaImprimir(int nroReserva)
+        [HttpGet("{nroReserva:int}/impresion/{eventosAñoId:int}")]
+        public async Task<ActionResult<ReservaParaImprimir>> GetReservaParaImprimir(int nroReserva, int eventosAñoId)
         {
-            var res = await _context.EventosCupones.FirstOrDefaultAsync(x => x.EventCuponNro == nroReserva && x.EventcuponEventoId == 6);
+            var res = await _context.EventosCupones.FirstOrDefaultAsync(x => x.EventCuponNro == nroReserva && x.EventcuponEventoId == eventosAñoId);
             if (res == null) return NotFound("Reserva no encontrada.");
 
             var datosSocio = await _context.Maesocs.FirstOrDefaultAsync(x => x.MaesocCuil == res.EventcuponMaesocCuil);
             if (datosSocio == null) return NotFound("Socio no encontrado.");
 
-            var mochilas = await _context.CuponBenefArticulos.Where(x => x.NroCupon == nroReserva && x.EventoId == 6).ToListAsync();
+            var mochilas = await _context.CuponBenefArticulos.Where(x => x.NroCupon == nroReserva && x.EventoId == eventosAñoId).ToListAsync();
 
-            var familiaTasks = mochilas.Select(async item => (await _context.Articulos.FindAsync(item.ArticuloId))?.Id.ToString()).ToList();
-            var regalosTasks = mochilas.Select(async item => (await _context.Articulos.FindAsync(item.ArticuloId))?.Descripcion).ToList();
+            var articuloIds = mochilas.Select(m => m.ArticuloId).ToList();
+            var articulos = await _context.Articulos
+                                          .Where(a => articuloIds.Contains(a.Id))
+                                          .ToListAsync();
 
-            var familiaIds = (await Task.WhenAll(familiaTasks)).Where(id => id != null).ToList();
-            var regalosDesc = (await Task.WhenAll(regalosTasks)).Where(desc => desc != null).ToList();
+            var familiaIds = articulos.Select(a => a.Id.ToString()).ToList();
+            var regalosDesc = articulos.Select(a => a.Descripcion).ToList();
 
             ReservaParaImprimir resParaImp = new ReservaParaImprimir
             {
@@ -121,10 +132,10 @@ namespace PruebaMudBlazor2.Server.Controllers
         }
 
         // Reemplaza a YaFueEntregado(int NroDeReserva)
-        [HttpGet("{nroReserva:int}/fueentregado")]
-        public async Task<ActionResult<bool>> YaFueEntregado(int nroReserva)
+        [HttpGet("{nroReserva:int}/fueentregado/{eventosAñoId:int}")]
+        public async Task<ActionResult<bool>> YaFueEntregado(int nroReserva, int eventosAñoId)
         {
-            var cupon = await _context.EventosCupones.FirstOrDefaultAsync(x => x.EventCuponNro == nroReserva && x.EventcuponEventoId == 6);
+            var cupon = await _context.EventosCupones.FirstOrDefaultAsync(x => x.EventCuponNro == nroReserva && x.EventcuponEventoId == eventosAñoId);
             if (cupon != null)
             {
                 return Ok(cupon.Reimpresion == 1);

@@ -1,0 +1,121 @@
+@page "/gestioneventos"
+@using PruebaMudBlazor2.Client.Services
+@using PruebaMudBlazor2.Shared.Models
+@using MudBlazor
+@inject IEventosApiClient EventosApi
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h5" Class="mb-4">Gestión de Eventos y Eventos por Año</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="6">
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Seleccionar Evento</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudSelect T="Evento" Label="Seleccione un Evento" @bind-Value="selectedEvento"
+                           ToStringFunc="@(e => e?.EventosNombre)" Variant="Variant.Filled">
+                    @foreach (var evento in eventos)
+                    {
+                        <MudSelectItem Value="evento">@evento.EventosNombre</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        @if (selectedEvento != null)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Crear Evento por Año para "@selectedEvento.EventosNombre"</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudForm @ref="form" Model="@eventosAño" EnableValidations="true" ValidationDelay="0">
+                        <MudTextField @bind-Value="eventosAño.NombreEvento" Label="Nombre del Evento Anual" Required="true"
+                                      For="@(() => eventosAño.NombreEvento)" />
+                        <MudTextField @bind-Value="eventosAño.LugarFecha" Label="Lugar y Fecha"
+                                      For="@(() => eventosAño.LugarFecha)" />
+                        <MudNumericField @bind-Value="eventosAño.CostoDeEntrada" Label="Costo de Entrada"
+                                         For="@(() => eventosAño.CostoDeEntrada)" Min="0" />
+                        <MudTextField @bind-Value="eventosAño.Comentario" Label="Comentario" Lines="3"
+                                      For="@(() => eventosAño.Comentario)" />
+                        
+                        @* Agrega más campos de la entidad EventosAño aquí según sea necesario *@
+                        @* Por ejemplo, para Linea1, Linea2, etc. *@
+                        <MudTextField @bind-Value="eventosAño.Linea1" Label="Línea 1 (descripción adicional)" />
+                        <MudTextField @bind-Value="eventosAño.Linea2" Label="Línea 2 (descripción adicional)" />
+                        <MudTextField @bind-Value="eventosAño.Linea3" Label="Línea 3 (descripción adicional)" />
+
+                    </MudForm>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Class="ml-auto">Crear Evento por Año</MudButton>
+                </MudCardActions>
+            </MudCard>
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<Evento> eventos = new List<Evento>();
+    private Evento? selectedEvento;
+    private EventosAño eventosAño = new EventosAño();
+    private MudForm form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEventos();
+    }
+
+    private async Task LoadEventos()
+    {
+        try
+        {
+            eventos = await EventosApi.GetEventos();
+            // Opcional: Si quieres seleccionar el primero por defecto
+            // selectedEvento = eventos.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar eventos: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid && selectedEvento != null)
+        {
+            try
+            {
+                // Asigna el ID del evento seleccionado al EventosAño
+                eventosAño.EventoId = selectedEvento.EventosId;
+                
+                // Si NombreEvento no se ha llenado, usar el nombre del Evento base
+                if (string.IsNullOrWhiteSpace(eventosAño.NombreEvento))
+                {
+                    eventosAño.NombreEvento = selectedEvento.EventosNombre;
+                }
+
+                var createdEventoAño = await EventosApi.CreateEventoAño(eventosAño);
+                Snackbar.Add($"Evento por Año '{createdEventoAño.NombreEvento}' creado exitosamente!", Severity.Success);
+                
+                // Reiniciar el formulario
+                eventosAño = new EventosAño();
+                selectedEvento = null; // Deseleccionar el evento para ocultar el formulario
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error al crear evento por año: {ex.Message}", Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Por favor, complete todos los campos requeridos y seleccione un evento.", Severity.Warning);
+        }
+    }
+}

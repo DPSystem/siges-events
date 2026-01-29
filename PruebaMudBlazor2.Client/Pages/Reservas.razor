@@ -10,6 +10,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
+@inject IEventosApiClient EventosApi
 
 <div class="reserva-main">
   <MudText Typo="Typo.h6">RESERVA DE MOCHILAS</MudText>
@@ -25,6 +26,16 @@
           @bind-Disabled="@btnValidarVisible">Validar</MudButton>
         <MudButton Variant="Variant.Filled" Raised OnClick="Limpiar" EndIcon="@Icons.Material.Filled.Close"
           Color="Color.Error" Disabled="@(btnCancelIsDisable)">Cancelar</MudButton>
+      </div>
+      <div class="event-selection mt-4">
+        <MudSelect T="EventosAño" Label="Seleccione un Evento del Año" @bind-Value="selectedEventosAño"
+                   ToStringFunc="@(ea => $"{ea?.Id}, EventoId: {ea?.EventoId}, Estado: {ea?.Estado}, Nombre: {ea?.NombreEvento}")" Variant="Variant.Filled" Required="true"
+                   Disabled="@(eventosAñoList == null || !eventosAñoList.Any())">
+            @foreach (var ea in eventosAñoList)
+            {
+                <MudSelectItem Value="ea">@($"{ea.Id}, EventoId: {ea.EventoId}, Estado: {ea.Estado}, Nombre: {ea.NombreEvento}")</MudSelectItem>
+            }
+        </MudSelect>
       </div>
     </MudCardContent>
   </MudCard>
@@ -82,13 +93,41 @@
   private MudTextField<string?> txtDni;
   private bool btnCancelIsDisable = true;
 
+  // New properties for EventosAño selection
+  private List<EventosAño> eventosAñoList = new();
+  private EventosAño? selectedEventosAño;
+
   protected override async Task OnInitializedAsync()
   {
     NroDeReserva = -1;
     Reserva = new EventosCupone();
     Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
     btnValidarVisible = true;
+    maesoc = null; // Initialize maesoc to null
+    await LoadFilteredEventosAño(); // Load filtered EventosAño on initialization
   }
+
+  private async Task LoadFilteredEventosAño()
+  {
+    try
+    {
+      // Here, 4 is the EventoId for "Mochilas" and 1 is the Estado for "Activo"
+      eventosAñoList = await EventosApi.GetEventosAñoFiltered(4, 1);
+
+      // Add console output for verification
+      foreach (var ea in eventosAñoList)
+      {
+          Console.WriteLine($"EventosAño - Id: {ea.Id}, EventoId: {ea.EventoId}, Estado: {ea.Estado}, NombreEvento: {ea.NombreEvento}");
+      }
+
+      selectedEventosAño = eventosAñoList.FirstOrDefault();
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error al cargar eventos del año filtrados: {ex.Message}", Severity.Error);
+    }
+  }
+
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -113,7 +152,7 @@
     StateHasChanged();
   }
 
-  Maesoc maesoc = new Maesoc();
+  Maesoc? maesoc; // Allow maesoc to be null
   Foto fotoTitular = new Foto();
   public string EstadoSocio;
   public string NroDeSocio;
@@ -159,7 +198,16 @@
           {
             if (await SociosApi.CumpleConAporteMinimoAsync(maesoc.MaesocCuil))
             {
-              NroDeReserva = await ReservasApi.GetNroDeReservaPorCuilAsync(maesoc.MaesocCuil);
+              if (selectedEventosAño != null)
+              {
+                NroDeReserva = await ReservasApi.GetNroDeReservaPorCuilAsync(maesoc.MaesocCuil, selectedEventosAño.Id);
+              }
+              else
+              {
+                Snackbar.Add("Por favor, seleccione un evento.", Severity.Warning);
+                _isLoading = false;
+                return;
+              }
 
               if (NroDeReserva == 0)
               {
@@ -212,7 +260,12 @@
   {
     if (NroDeReserva > 0)
     {
-      Reserva = await ReservasApi.GetReservaAsync(NroDeReserva);
+      if (selectedEventosAño == null)
+      {
+        Snackbar.Add("No se ha seleccionado ningún evento.", Severity.Error);
+        return;
+      }
+      Reserva = await ReservasApi.GetReservaAsync(NroDeReserva, selectedEventosAño.Id);
       btnConfirmarIsVisible = false;
       await OpenDialogAsync();
     }
@@ -245,7 +298,8 @@
 { x => x.alumnos, ALumnos },
 { x => x.socio, maesoc },
 { x => x.EstadoReserva, Reserva },
-{ x => x._files2, cicloSeleccionadoEventArgs.Files }
+{ x => x._files2, cicloSeleccionadoEventArgs.Files },
+{ x => x.EventosAñoId, selectedEventosAño?.Id ?? 0 } // Pass the selected EventosAñoId
 };
     return DialogService.ShowAsync<DialogInfo>("Simple Dialog", parameters, options);
   }

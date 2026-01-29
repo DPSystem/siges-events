@@ -19,10 +19,20 @@
     <h3>Informacion de Reserva</h3>
   </TitleContent>
   <DialogContent>
-    <h3>SOCIO Nº @socio.MaesocNroafil</h3>
-    <h3>@socio.Apenom</h3>
+    @if (socio != null)
+    {
+        <h3>SOCIO Nº @socio.MaesocNroafil?</h3>
+        <h3>@socio.Apenom?</h3>
+    }
+    else
+    {
+        <h3>Socio no disponible</h3>
+    }
 
-    <h2 hidden="@btnConfirmarIsVisible">RESERVA Nº @EstadoReserva.EventCuponNro </h2> @* @NroDeReserva *@
+    @if (EstadoReserva != null)
+    {
+        <h2 hidden="@btnConfirmarIsVisible">RESERVA Nº @EstadoReserva.EventCuponNro </h2> @* @NroDeReserva *@
+    }
 
     @if ((EstadoReserva != null) && (!btnConfirmarIsVisible))
     {
@@ -78,10 +88,9 @@
     {
       <p>
         <MudTextField Immediate="true" Label="Nº de Celular"
-                    HelperText="Completar para poder Confirmar"
-                    ValidationText="Completar para poder Confirmar"
-                    Validation="@(new Func<string, IEnumerable<string>>(IsEmpty))"
-                    @bind-Value="@NroDeCelular" Variant="@Variant.Text" Clearable />
+                    HelperText="Solo números, 10 dígitos"
+                    Validation="@(new Func<string, IEnumerable<string>>(ValidatePhoneNumber))"
+                    @bind-Value="@NroDeCelular" Variant="@Variant.Text" Clearable InputType="InputType.Number" MaxLength="10" />
       </p>
     }
     @* <MudImage src="@QRByte" alt="Foto" Width="300"/> *@
@@ -104,7 +113,7 @@
     @if (btnConfirmarIsVisible)
     {
       <MudButton Variant="Variant.Filled" OnClick="@FinalizarReserva"
-                 Disabled="@(NroDeCelular.Length < 9 || btnConfirmarIsDisable)">Confirmar Reserva</MudButton> @* OnClick="@FinalizarReserva" *@
+                 Disabled="@(ValidatePhoneNumber(NroDeCelular).Any() || btnConfirmarIsDisable)">Confirmar Reserva</MudButton> @* OnClick="@FinalizarReserva" *@
     }
 
   </DialogActions>
@@ -119,11 +128,15 @@ private string qrReservaSource = "";
   protected override async Task OnInitializedAsync()
   {
     NroDeCelular = "";
-    @* GenerateQRCode(EstadoReserva.EventCuponNro.ToString());
-    GenerateQRCode(NroDeReserva.ToString()); *@
-    // Generamos y guardamos cada QR en su propia variable
-    qrCuponSource = GenerateQRCode(EstadoReserva.EventCuponNro.ToString());
-    qrReservaSource = GenerateQRCode(NroDeReserva.ToString());
+    if (EstadoReserva != null)
+    {
+      Console.WriteLine($"EstadoReserva.EventCuponNro: {EstadoReserva.EventCuponNro}");
+      Console.WriteLine($"NroDeReserva: {NroDeReserva}");
+      qrCuponSource = GenerateQRCode(EstadoReserva.EventCuponNro.ToString());
+      qrReservaSource = GenerateQRCode(NroDeReserva.ToString());
+    } else {
+        Console.WriteLine("EstadoReserva is null, QR codes will not be generated.");
+    }
   }
 
   private string NroDeCelular;
@@ -162,10 +175,21 @@ private string qrReservaSource = "";
     }
   } *@
 
-  private IEnumerable<string> IsEmpty(string ch)
+  private IEnumerable<string> ValidatePhoneNumber(string phoneNumber)
   {
-    if (string.IsNullOrEmpty(ch) || ch?.Length < 11)
-    yield return "Complete el campo celular";
+    if (string.IsNullOrWhiteSpace(phoneNumber))
+    {
+        yield return "Complete el campo celular";
+        yield break;
+    }
+    if (!long.TryParse(phoneNumber, out _))
+    {
+        yield return "El celular debe contener solo números";
+    }
+    if (phoneNumber.Length != 10)
+    {
+        yield return "El celular debe tener 10 dígitos";
+    }
   }
 
   private bool _visible;
@@ -175,7 +199,7 @@ private string qrReservaSource = "";
   public List<Alumno>? alumnos { get; set; }
 
   [Parameter]
-  public Maesoc socio { get; set; }
+  public Maesoc? socio { get; set; }
 
   [Parameter]
   public int NroDeReserva { get; set; }
@@ -185,6 +209,9 @@ private string qrReservaSource = "";
 
   [Parameter]
   public IList<IBrowserFile>? _files2 { get; set; }
+
+  [Parameter]
+  public int EventosAñoId { get; set; }
 
   // [Parameter]
   // public EventCallback<List<Alumno>> OnReservaConfirmada { get; set; }  // Nuevo Evento
@@ -219,8 +246,8 @@ private string qrReservaSource = "";
     if (CuilTitular != null) // Verifica que haya un alumno en la lista
     {
       int Estado = alumnos.Where(x => x.Edad >= 16).Count() > 0 ? 2 : 0;
-      int NewNroDeReserva = await SindicatoService.SetReservaMochila(CuilTitular, NroDeCelular, Estado);
-      bool alumnoMochila = await SindicatoService.SetAlumnoMochila(alumnos, NewNroDeReserva);
+      int NewNroDeReserva = await SindicatoService.SetReservaMochila(CuilTitular, NroDeCelular, Estado, EventosAñoId);
+      bool alumnoMochila = await SindicatoService.SetAlumnoMochila(alumnos, NewNroDeReserva, EventosAñoId);
       NroDeReserva = NewNroDeReserva;
      //await GuardarFoto(NewNroDeReserva); // Guardo la foto en disco
       if (true)//alumnoMochila)
