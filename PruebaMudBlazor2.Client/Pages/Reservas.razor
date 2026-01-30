@@ -1,4 +1,4 @@
-@attribute [Authorize(Roles = "Admin")]
+@* @attribute [Authorize(Roles = "Admin")] *@
 @using Microsoft.AspNetCore.Authorization
 @page "/reservas"
 
@@ -29,12 +29,14 @@
       </div>
       <div class="event-selection mt-4">
         <MudSelect T="EventosAño" Label="Seleccione un Evento del Año" @bind-Value="selectedEventosAño"
-                   ToStringFunc="@(ea => $"{ea?.Id}, EventoId: {ea?.EventoId}, Estado: {ea?.Estado}, Nombre: {ea?.NombreEvento}")" Variant="Variant.Filled" Required="true"
-                   Disabled="@(eventosAñoList == null || !eventosAñoList.Any())">
-            @foreach (var ea in eventosAñoList)
-            {
-                <MudSelectItem Value="ea">@($"{ea.Id}, EventoId: {ea.EventoId}, Estado: {ea.Estado}, Nombre: {ea.NombreEvento}")</MudSelectItem>
-            }
+          ToStringFunc="@(ea => $"{ea?.NombreEvento}")" Variant="Variant.Filled" Required="true" Disabled>
+          @* Disabled="@(eventosAñoList == null || !eventosAñoList.Any())" 
+          ToStringFunc="@(ea => $"{ea?.Id}, EventoId: {ea?.EventoId}, Estado: {ea?.Estado}, Nombre: {ea?.NombreEvento}")" *@
+          @foreach (var ea in eventosAñoList)
+          {
+            <MudSelectItem Value="ea">@($"{ea.NombreEvento}")</MudSelectItem>
+            @* <MudSelectItem Value="ea">@($"{ea.Id}, EventoId: {ea.EventoId}, Estado: {ea.Estado}, Nombre:            {ea.NombreEvento}")</MudSelectItem> *@
+          }
         </MudSelect>
       </div>
     </MudCardContent>
@@ -115,10 +117,10 @@
       eventosAñoList = await EventosApi.GetEventosAñoFiltered(4, 1);
 
       // Add console output for verification
-      foreach (var ea in eventosAñoList)
+      @* foreach (var ea in eventosAñoList)
       {
-          Console.WriteLine($"EventosAño - Id: {ea.Id}, EventoId: {ea.EventoId}, Estado: {ea.Estado}, NombreEvento: {ea.NombreEvento}");
-      }
+        Console.WriteLine($"EventosAño - Id: {ea.Id}, EventoId: {ea.EventoId}, Estado: {ea.Estado}, NombreEvento: {ea.NombreEvento}");
+      } *@
 
       selectedEventosAño = eventosAñoList.FirstOrDefault();
     }

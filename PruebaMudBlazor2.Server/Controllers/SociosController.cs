@@ -83,7 +83,7 @@ namespace PruebaMudBlazor2.Server.Controllers
         [HttpGet("{cuil:double}/carencia")]
         public async Task<ActionResult<bool>> GetCarencia(double cuil)
         {
-            DateTime mesDeCarencia = new DateTime(2024, 10, 1);
+            DateTime mesDeCarencia = new DateTime(2025, 11, 1); // tabla configuracion
             var carencia = await _context.Ddjjs.FirstOrDefaultAsync(x => x.Cuil == cuil && x.Periodo >= mesDeCarencia);
 
             if (carencia != null)
@@ -108,7 +108,7 @@ namespace PruebaMudBlazor2.Server.Controllers
                 aporteMinimo = Convert.ToDecimal(ultimaDJ.Impo.GetValueOrDefault() + ultimaDJ.Impoaux.GetValueOrDefault()) * 0.02m;
             }
 
-            return Ok(aporteMinimo > 8000);
+            return Ok(aporteMinimo > 11000); // tabla configuracion
         }
     }
 }
