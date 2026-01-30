@@ -32,6 +32,7 @@ var authApiUrl = builder.Configuration
 builder.Services.AddScoped<BearerTokenHandler>();
 
 // Register HttpClients
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 builder.Services.AddHttpClient("ApiHttpClient", client =>
     {
         client.BaseAddress = new Uri(apiBaseUrl);

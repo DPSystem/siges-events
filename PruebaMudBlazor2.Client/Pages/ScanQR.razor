@@ -8,6 +8,8 @@
 @inject HttpClient Http
 @inject ISnackbar snack
 
+@using PruebaMudBlazor2.Shared.Models
+
 
 
 <MudTabs Class="mt-5">
@@ -17,7 +19,8 @@
         <div class="qr-in">
 
           <MudButton @onclick="StartScanning" Variant="Variant.Filled" Class="ma-5" Raised
-            EndIcon="@Icons.Material.Filled.QrCodeScanner" Disabled="@(!_isConected || selectedEventosAño == null)">
+            EndIcon="@Icons.Material.Filled.QrCodeScanner"
+            Disabled="@(!_isConected || selectedEventosAño == null || !_isPrinterSelected)">
             Start QR Scanner
           </MudButton>
 
@@ -40,8 +43,13 @@
         </MudTextField>
         <MudButton @onclick="sendPrinting" Variant="Variant.Filled" Class="ma-5" Raised
           EndIcon="@Icons.Material.Filled.CheckCircleOutline"
-          Disabled="@(!_isConected && _isLoading || selectedEventosAño == null)">
+          Disabled="@(!_isConected && _isLoading || selectedEventosAño == null || !_isPrinterSelected)">
           Validar
+        </MudButton>
+        <MudButton @onclick="sendPrintingTest" Variant="Variant.Filled" Class="ma-5" Raised
+          EndIcon="@Icons.Material.Filled.Print"
+          Disabled="@(!_isConected && _isLoading || selectedEventosAño == null || !_isPrinterSelected)">
+          TestPrint
         </MudButton>
       </MudPaper>
     </div>
@@ -78,6 +86,7 @@
 
   private bool _isConected = false;
   private bool _isLoading = false;
+  private bool _isPrinterSelected = false; // ADD THIS
 
   public int idPrinter;
   private string serverIp;
@@ -97,6 +106,7 @@
     idPrinter = result.idPrinter;
     _isConected = result.isConected;
     serverIp = result.serverIp;
+    _isPrinterSelected = result.isPrinterSelected; // ADD THIS
     Console.WriteLine(idPrinter);
   }
 
@@ -133,6 +143,11 @@
       snack.Add("Por favor, seleccione un evento primero.", Severity.Warning);
       return;
     }
+    if (!_isPrinterSelected) // ADD THIS
+    {
+      snack.Add("Por favor, seleccione una impresora primero.", Severity.Warning); // ADD THIS
+      return; // ADD THIS
+    }
     await JS.InvokeVoidAsync("startQrScanner", [objRef, Http]);
   }
 
@@ -144,6 +159,11 @@
       snack.Add("Error: No hay un evento seleccionado.", Severity.Error);
       return;
     }
+    if (!_isPrinterSelected) // ADD THIS
+    {
+      snack.Add("Por favor, seleccione una impresora primero.", Severity.Warning); // ADD THIS
+      return; // ADD THIS
+    }
 
     if (qrResult != result)
     {
@@ -152,7 +172,7 @@
       if (!estaReservado)
       {
         var res = await SindicatoService.GetReservaImpresion(Convert.ToInt32(result), selectedEventosAñoId);
-        qrResult = result;
+        qrResult = result; // Missing line, adding for consistency
         var reserva = new Reserva
         {
           NroReserva = res.NroReserva,
@@ -163,8 +183,7 @@
           Regalos = res.Regalos.ToList(),
           idPrinter = idPrinter
         };
-
-        await Http.PostAsJsonAsync("http://" + serverIp + ":8080/ticket/generar", reserva);
+        await Http.PostAsJsonAsync($"/api/PrinterProxy/generateTicket/{serverIp}", reserva);
         snack.Add("Scaneado correcto Reserva nro: " + result, Severity.Success);
         StateHasChanged();
       }
@@ -175,16 +194,7 @@
     }
   }
 
-  public class Reserva
-  {
-    public string NroReserva { get; set; }
-    public string NroSocio { get; set; }
-    public string ApellidoNombreSocio { get; set; }
-    public string dni { get; set; }
-    public List<string> Familiares { get; set; } = new();
-    public List<string> Regalos { get; set; } = new();
-    public int idPrinter { get; set; }
-  }
+
 
   private async Task sendPrinting()
   {
@@ -193,7 +203,11 @@
       snack.Add("Por favor, seleccione un evento primero.", Severity.Warning);
       return;
     }
-
+    if (!_isPrinterSelected) // ADD THIS
+    {
+      snack.Add("Por favor, seleccione una impresora primero.", Severity.Warning); // ADD THIS
+      return; // ADD THIS
+    }
     if (string.IsNullOrEmpty(qrNroReserva))
     {
       return;
@@ -222,7 +236,7 @@
             idPrinter = idPrinter
           };
 
-          await Http.PostAsJsonAsync("http://" + serverIp + ":8080/ticket/generar", reserva);
+          await Http.PostAsJsonAsync($"/api/PrinterProxy/generateTicket/{serverIp}", reserva);
           snack.Add("Scaneado correcto Reserva nro: " + qrNroReserva, Severity.Success);
           StateHasChanged();
         }
@@ -242,6 +256,70 @@
       }
     }
   }
+
+
+
+  private async Task sendPrintingTest()
+  {
+    if (selectedEventosAñoId == 0)
+    {
+      snack.Add("Por favor, seleccione un evento primero.", Severity.Warning);
+      return;
+    }
+    if (!_isPrinterSelected) // ADD THIS
+    {
+      snack.Add("Por favor, seleccione una impresora primero.", Severity.Warning); // ADD THIS
+      return; // ADD THIS
+    }
+    if (string.IsNullOrEmpty(qrNroReserva))
+    {
+      return;
+    }
+
+    _isLoading = true;
+
+    if (qrResult != qrNroReserva)
+    {
+      try
+      {
+        var estaReservado = await SindicatoService.YaFueEntregado(Convert.ToInt32(qrNroReserva), selectedEventosAñoId);
+
+        if (estaReservado)
+        {
+          var res = await SindicatoService.GetReservaImpresion(Convert.ToInt32(qrNroReserva), selectedEventosAñoId);
+          qrResult = qrNroReserva;
+          var reserva = new Reserva
+          {
+            NroReserva = res.NroReserva,
+            NroSocio = res.NroSocio.ToString(),
+            ApellidoNombreSocio = res.ApellidoNombreSocio,
+            dni = res.dni.ToString(),
+            Familiares = res.Familiares.ToList(),
+            Regalos = res.Regalos.ToList(),
+            idPrinter = idPrinter
+          };
+
+          await Http.PostAsJsonAsync($"/api/PrinterProxy/generateTicket/{serverIp}", reserva);
+          snack.Add("Scaneado correcto Reserva nro: " + qrNroReserva, Severity.Success);
+          StateHasChanged();
+        }
+        else
+        {
+          snack.Add("La reserva Nº " + qrNroReserva + " Ya Fue Retirada", Severity.Warning);
+        }
+      }
+      catch (Exception ex)
+      {
+        snack.Add($"Error al generar reserva: {ex.Message}", Severity.Error);
+      }
+      finally
+      {
+        _isLoading = false;
+        await txtNroReservaManual.Clear();
+      }
+    }
+  }
+
 
   private async void sendKeyEnter(KeyboardEventArgs e)
   {
