@@ -2,70 +2,71 @@
 
 <MudPaper>
   <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-  <MudList T="string">
-    @foreach (var alumno in alumnos)
-    {
-      <MudListItem>
-        <div class="d-flex align-center">
+    <MudList T="string">
+      @foreach (var alumno in alumnos)
+      {
+        <MudListItem>
+          <div class="d-flex align-center">
             <MudAvatar Style="height:70px; width:70px;" Class="mr-4">
-                <MudImage src="@("https://fileserver.secsantiago.com.ar/api/v1/download/beneficiarios_"+alumno.CodiGoDeFamiliar + ".png")" alt="Foto" />
+              <MudImage
+                src="@("https://fileserver.secsantiago.com.ar/api/v1/download/beneficiarios_"+alumno.CodiGoDeFamiliar + ".png")"
+                alt="Foto" />
             </MudAvatar>
             <div>
-                <MudText>@alumno.Apenom</MudText>
-                <MudText Typo="Typo.body2">@("Edad: "+alumno.Edad)</MudText>
+              <MudText>@alumno.Apenom</MudText>
+              <MudText Typo="Typo.body2">@("Edad: " + alumno.Edad)</MudText>
             </div>
-        </div>
-      </MudListItem>
-      <MudDivider />
-      @* <button @onclick="() => OnCicloChanged()">Modify</button> *@
-      <MudListItem>
-        <ChildContent>
-          <MudSelect @bind-Value="alumno.CicloEscolar" Label="Ciclo escolar"
-                       Required="true" RequiredError="Ciclo escolar  es requerido!"
-                     Placeholder="Por favor selecciona">
-            @foreach (var item in ciclos)
-            {
-              <MudSelectItem Value="item.Mochila">@item.Mochila</MudSelectItem>
-            }
-          </MudSelect>
+          </div>
+        </MudListItem>
+        <MudDivider />
+        @* <button @onclick="() => OnCicloChanged()">Modify</button> *@
+        <MudListItem>
+          <ChildContent>
+            <MudSelect @bind-Value="alumno.CicloEscolar" Label="Ciclo escolar" Required="true"
+              RequiredError="Ciclo escolar  es requerido!" Placeholder="Por favor selecciona">
+              @foreach (var item in ciclos)
+              {
+                <MudSelectItem Value="item.Mochila">@item.Mochila</MudSelectItem>
+              }
+            </MudSelect>
 
-          @* <MudSelect @bind-Value="stringValue" Label="Ciclo escolar"
+            @* <MudSelect @bind-Value="stringValue" Label="Ciclo escolar"
         Placeholder="Por favor selecciona">
         @foreach (var item in value1Items)
         {
         <MudSelectItem Value="item">@item</MudSelectItem>
         }
         </MudSelect>*@
-        </ChildContent>
-      </MudListItem>
-      <MudDivider />
-      <MudListItem Disabled="@ValidaEdad(alumno.Edad)">
-        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
-          @*  Este es el metodo que te va almacenando ls fotos que subes  *@
-          <ActivatorContent>
-            <MudBadge Content="@_files.Count()" Overlap="true" Class="mx-6 my-4" Color="MudBlazor.Color.Info">
-              <MudButton Variant="Variant.Filled" FullWidth Disabled="@ValidaEdad(alumno.Edad)"
-                         StartIcon="@Icons.Material.Filled.CloudUpload">
-                Adjuntar Documentos
-              </MudButton>
+          </ChildContent>
+        </MudListItem>
+        <MudDivider />
+        <MudListItem Disabled="@ValidaEdad(alumno.Edad)">
+          <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+            @*  Este es el metodo que te va almacenando ls fotos que subes  *@
+            <ActivatorContent>
+              <MudBadge Content="@_files.Count()" Overlap="true" Class="mx-6 my-4" Color="MudBlazor.Color.Info">
+                <MudButton Variant="Variant.Filled" FullWidth Disabled="@ValidaEdad(alumno.Edad)"
+                  StartIcon="@Icons.Material.Filled.CloudUpload">
+                  Adjuntar Documentos
+                </MudButton>
                 <MudText>Libreta / Inscripcion</MudText>
-            </MudBadge>
-          </ActivatorContent>
-        </MudFileUpload>
-      </MudListItem>
-    }
+              </MudBadge>
+            </ActivatorContent>
+          </MudFileUpload>
+        </MudListItem>
+      }
 
-  </MudList>
-  
-  <MudCardActions>
-     @*  <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Filled.Check"
+    </MudList>
+
+    <MudCardActions>
+      @*  <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Filled.Check"
                  ButtonType="ButtonType.Submit" Disabled="@(!success)">Finalizar</MudButton> *@
-    <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Filled.Check"
-                 OnClick="OnCicloChanged" Disabled="@(!success)">Finalizar</MudButton>
-    @* <MudIconButton Icon="@MudIconNames.Favorite"></MudIconButton>
+      <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Filled.Check" OnClick="OnCicloChanged"
+        Color="Color.Primary" Disabled="@(!success)">Finalizar</MudButton>
+      @* <MudIconButton Icon="@MudIconNames.Favorite"></MudIconButton>
     <MudIconButton Icon="@MudIconNames.Dashboard"></MudIconButton> *@
 
-  </MudCardActions>
+    </MudCardActions>
   </MudForm>
 </MudPaper>
 <div class="fila-inferior">
@@ -105,10 +106,10 @@
     //alumno.CicloEscolar = alumno.CicloEscolar; // Actualiza el ciclo escolar en el objeto Alumno
 
     await OnCicloSeleccionado.InvokeAsync(new CicloSeleccionadoEventArgs
-      {
-        Alumnos = alumnos,
-        Files = _files
-      }); // Lanza el evento con el Alumno actualizado
+    {
+      Alumnos = alumnos,
+      Files = _files
+    }); // Lanza el evento con el Alumno actualizado
   }
 
   public class CicloSeleccionadoEventArgs
@@ -122,27 +123,28 @@
   private string stringValue { get; set; }
   string[] value1Items = new[]
   {
-    "Jardin Mujer",
-    "Jardin Varon",
-    "Primaria Mujer de 1º a 3º Grado",
-    "Primaria Varon de 1º a 3º Grado",
-    "Primaria Mujer de 4º a 7º Grado",
-    "Primaria Varon de 4º a 7º Grado",
-    "Secundario Mujer",
-    "Secundario Varon"
+"Jardin Mujer",
+"Jardin Varon",
+"Primaria Mujer de 1º a 3º Grado",
+"Primaria Varon de 1º a 3º Grado",
+"Primaria Mujer de 4º a 7º Grado",
+"Primaria Varon de 4º a 7º Grado",
+"Secundario Mujer",
+"Secundario Varon"
 };
 
   public List<ciclo> ciclos = new List<ciclo>
-  {
-  new ciclo {Id = 1,  Mochila="Jardin Mujer Salita 3/4/5" },
-  new ciclo {Id = 2,  Mochila="Jardin Varon Salita 3/4/5" },
-  new ciclo {Id = 3,  Mochila= "Primaria Mujer de 1º a 2º Grado"},
-  new ciclo {Id = 4,  Mochila= "Primaria Varon de 1º a 2º Grado"},
-  new ciclo {Id = 5,  Mochila= "Primaria Mujer de 3º a 7º Grado"},
-  new ciclo {Id = 6,  Mochila= "Primaria Varon de 3º a 7º Grado"},
-  new ciclo {Id = 7,  Mochila= "Secundario Mujer"},
-  new ciclo {Id = 8,  Mochila= "Secundario Varon"}
-  };
+{
+new ciclo {Id = 1, Mochila="Jardin Mujer Salita 3/4/5" },
+new ciclo {Id = 2, Mochila="Jardin Varon Salita 3/4/5" },
+new ciclo {Id = 3, Mochila= "Primaria I Mujer de 1º a 3º Grado"},
+new ciclo {Id = 4, Mochila= "Primaria I Varon de 1º a 3º Grado"},
+new ciclo {Id = 5, Mochila= "Primaria II Mujer de 4º a 7º Grado"},
+new ciclo {Id = 6, Mochila= "Primaria II Varon de 4º a 7º Grado"},
+new ciclo {Id = 7, Mochila= "Secundario Mujer"},
+new ciclo {Id = 8, Mochila= "Secundario Varon"},
+new ciclo {Id = 9, Mochila= "Terciario / Universitario (BOUCHER)"}
+};
 
   public class ciclo()
   {
@@ -155,9 +157,9 @@
   {
     if (!edad.HasValue)
     {
-        return true; // Disable if age is unknown
+      return true; // Disable if age is unknown
     }
-    return !(edad.Value >= 16);
+    return !(edad.Value >= 20);
   }
 
   IList<IBrowserFile> _files = new List<IBrowserFile>();

@@ -21,17 +21,17 @@
   <DialogContent>
     @if (socio != null)
     {
-        <h3>SOCIO Nº @socio.MaesocNroafil?</h3>
-        <h3>@socio.Apenom?</h3>
+      <h3>SOCIO Nº @socio.MaesocNroafil</h3>
+      <h3>@socio.Apenom</h3>
     }
     else
     {
-        <h3>Socio no disponible</h3>
+      <h3>Socio no disponible</h3>
     }
 
     @if (EstadoReserva != null)
     {
-        <h2 hidden="@btnConfirmarIsVisible">RESERVA Nº @EstadoReserva.EventCuponNro </h2> @* @NroDeReserva *@
+      <h2 hidden="@btnConfirmarIsVisible">RESERVA Nº @EstadoReserva.EventCuponNro </h2> @* @NroDeReserva *@
     }
 
     @if ((EstadoReserva != null) && (!btnConfirmarIsVisible))
@@ -39,27 +39,31 @@
       @if (EstadoReserva.Reimpresion == 0)
       {
         <br />
-        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Success"
-                 Icon="@Icons.Material.Filled.Check"><h4> Para Retirar</h4> </MudChip>
+        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Success" Icon="@Icons.Material.Filled.Check">
+          <h4> Para Retirar</h4>
+        </MudChip>
       }
       @if (EstadoReserva.Reimpresion == 1)
       {
         <br />
-        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning"
-                 Icon="@Icons.Material.Filled.Warning"><h4>Retirado</h4></MudChip>
+        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.Warning">
+          <h4>Retirado</h4>
+        </MudChip>
       }
 
       @if (EstadoReserva.Reimpresion == 2)
       {
         <br />
-        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning"
-                 Icon="@Icons.Material.Filled.Warning"><h4>Pendiente de Aprobacion</h4></MudChip>
+        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.Warning">
+          <h4>Pendiente de Aprobacion</h4>
+        </MudChip>
       }
       @if (EstadoReserva.Reimpresion == 3)
       {
         <br />
-        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning"
-                 Icon="@Icons.Material.Filled.Warning"><h4>Rechazada</h4></MudChip>
+        <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.Warning">
+          <h4>Rechazada</h4>
+        </MudChip>
       }
     }
 
@@ -68,7 +72,7 @@
     <div>
       @* HeaderClass="custom-header" HeaderStyle="background-color: #2196F3; color: white; font-weight: bold;" *@
       <MudTable T="Alumno" Items="@alumnos" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
-                RowClass="cursor-pointer" GroupHeaderStyle="background-color:var(--mud-palette-background-gray)">
+        RowClass="cursor-pointer" GroupHeaderStyle="background-color:var(--mud-palette-background-gray)">
         <HeaderContent>
           <th>Nombre</th>
           <th>Mochila</th>
@@ -87,33 +91,32 @@
     @if (btnConfirmarIsVisible)
     {
       <p>
-        <MudTextField Immediate="true" Label="Nº de Celular"
-                    HelperText="Solo números, 10 dígitos"
-                    Validation="@(new Func<string, IEnumerable<string>>(ValidatePhoneNumber))"
-                    @bind-Value="@NroDeCelular" Variant="@Variant.Text" Clearable InputType="InputType.Number" MaxLength="10" />
+        <MudTextField Immediate="true" Label="Nº de Celular" HelperText="Solo números, 10 dígitos"
+          Validation="@(new Func<string, IEnumerable<string>>(ValidatePhoneNumber))" @bind-Value="@NroDeCelular"
+          Variant="@Variant.Text" Clearable InputType="InputType.Number" MaxLength="10" />
       </p>
     }
     @* <MudImage src="@QRByte" alt="Foto" Width="300"/> *@
     @* <div><img alt="" src="@QRByte" width="300" class="mb-5" hidden="@btnConfirmarIsVisible" /></div>
     <div data-url="@QRByte"></div> *@
     <MudStack AlignItems="AlignItems.Center" Spacing="4">
-    <MudPaper Class="pa-4" Elevation="3">
+      <MudPaper Class="pa-4" Elevation="3">
         @* <MudText Typo="Typo.subtitle1" Align="Align.Center">Código de Cupón</MudText> *@
         <MudImage Src="@qrCuponSource" Width="200" Height="200" Alt="QR Cupón" />
-    </MudPaper>
+      </MudPaper>
 
-    @* <MudPaper Class="pa-4" Elevation="3">
+      @* <MudPaper Class="pa-4" Elevation="3">
         <MudText Typo="Typo.subtitle1" Align="Align.Center">Código de Reserva</MudText>
         <MudImage Src="@qrReservaSource" Width="200" Height="200" Alt="QR Reserva" />
     </MudPaper> *@
-</MudStack>
+    </MudStack>
   </DialogContent>
   <DialogActions>
     <MudButton OnClick="@Cancel" Color="MudBlazor.Color.Info">Volver</MudButton>
     @if (btnConfirmarIsVisible)
     {
       <MudButton Variant="Variant.Filled" OnClick="@FinalizarReserva"
-                 Disabled="@(ValidatePhoneNumber(NroDeCelular).Any() || btnConfirmarIsDisable)">Confirmar Reserva</MudButton> @* OnClick="@FinalizarReserva" *@
+        Disabled="@(ValidatePhoneNumber(NroDeCelular).Any() || btnConfirmarIsDisable)">Confirmar Reserva</MudButton> @* OnClick="@FinalizarReserva" *@
     }
 
   </DialogActions>
@@ -121,9 +124,9 @@
 
 
 @code {
-// Definimos variables separadas para cada QR
-private string qrCuponSource = "";
-private string qrReservaSource = "";
+  // Definimos variables separadas para cada QR
+  private string qrCuponSource = "";
+  private string qrReservaSource = "";
 
   protected override async Task OnInitializedAsync()
   {
@@ -134,8 +137,10 @@ private string qrReservaSource = "";
       Console.WriteLine($"NroDeReserva: {NroDeReserva}");
       qrCuponSource = GenerateQRCode(EstadoReserva.EventCuponNro.ToString());
       qrReservaSource = GenerateQRCode(NroDeReserva.ToString());
-    } else {
-        Console.WriteLine("EstadoReserva is null, QR codes will not be generated.");
+    }
+    else
+    {
+      Console.WriteLine("EstadoReserva is null, QR codes will not be generated.");
     }
   }
 
@@ -144,20 +149,20 @@ private string qrReservaSource = "";
   @* private string QRByte = ""; *@
 
   public string GenerateQRCode(string text)
-{
+  {
     if (string.IsNullOrWhiteSpace(text)) return "";
 
     using var qrGenerator = new QRCodeGenerator();
     using var qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
-    
-    // SOLUCIÓN AL ERROR: Usamos PngByteQRCode. 
+
+    // SOLUCIÓN AL ERROR: Usamos PngByteQRCode.
     // Esta clase NO usa System.Drawing y funciona perfecto en el navegador.
     var qrCode = new PngByteQRCode(qrCodeData);
-    byte[] qrAsBytes = qrCode.GetGraphic(20); 
+    byte[] qrAsBytes = qrCode.GetGraphic(20);
 
     // Convertimos a base64 para que la etiqueta <img> pueda leerlo
     return $"data:image/png;base64,{Convert.ToBase64String(qrAsBytes)}";
-}
+  }
 
   @* public void GenerateQRCode(string QRUrl = "prueba qr")
   {
@@ -179,16 +184,16 @@ private string qrReservaSource = "";
   {
     if (string.IsNullOrWhiteSpace(phoneNumber))
     {
-        yield return "Complete el campo celular";
-        yield break;
+      yield return "Complete el campo celular";
+      yield break;
     }
     if (!long.TryParse(phoneNumber, out _))
     {
-        yield return "El celular debe contener solo números";
+      yield return "El celular debe contener solo números";
     }
     if (phoneNumber.Length != 10)
     {
-        yield return "El celular debe tener 10 dígitos";
+      yield return "El celular debe tener 10 dígitos";
     }
   }
 
@@ -214,7 +219,7 @@ private string qrReservaSource = "";
   public int EventosAñoId { get; set; }
 
   // [Parameter]
-  // public EventCallback<List<Alumno>> OnReservaConfirmada { get; set; }  // Nuevo Evento
+  // public EventCallback<List<Alumno>> OnReservaConfirmada { get; set; } // Nuevo Evento
 
 
 
@@ -245,17 +250,17 @@ private string qrReservaSource = "";
 
     if (CuilTitular != null) // Verifica que haya un alumno en la lista
     {
-      int Estado = alumnos.Where(x => x.Edad >= 16).Count() > 0 ? 2 : 0;
+      int Estado = alumnos.Where(x => x.Edad >= 20).Count() > 0 ? 2 : 0;
       int NewNroDeReserva = await SindicatoService.SetReservaMochila(CuilTitular, NroDeCelular, Estado, EventosAñoId);
       bool alumnoMochila = await SindicatoService.SetAlumnoMochila(alumnos, NewNroDeReserva, EventosAñoId);
       NroDeReserva = NewNroDeReserva;
-     //await GuardarFoto(NewNroDeReserva); // Guardo la foto en disco
+      //await GuardarFoto(NewNroDeReserva); // Guardo la foto en disco
       if (true)//alumnoMochila)
       {
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
         Snackbar.Add("Su reserva fue EXITOSA", Severity.Success);
 
-        await UploadFiles(_files2,"comprobantes");
+        await UploadFiles(_files2, "comprobantes");
 
         MudDialog.Close();
         NavigationManager.NavigateTo("/");
@@ -267,9 +272,9 @@ private string qrReservaSource = "";
     }
     else
     {
-      //     // Manejar el caso en que la lista de alumnos está vacía
-      //     // Por ejemplo, mostrar un mensaje de error al usuario.
-      //     Console.WriteLine("La lista de alumnos está vacía.");
+      // // Manejar el caso en que la lista de alumnos está vacía
+      // // Por ejemplo, mostrar un mensaje de error al usuario.
+      // Console.WriteLine("La lista de alumnos está vacía.");
     }
 
     // await OnReservaConfirmada.InvokeAsync(alumnos);
@@ -283,43 +288,45 @@ private string qrReservaSource = "";
 
   // public void UploadFiles(IBrowserFile file)
   // {
-  //   _files.Add(file);
-  //   //   //TODO upload the files to the server
+  // _files.Add(file);
+  // // //TODO upload the files to the server
   // }
 
 
   // async Task GuardarFoto(int NroReserva)
   // {
-  //   if (_files.Count == 0)
-  //   {
-  //     // Mostrar mensaje de error: No se han seleccionado archivos.
-  //     return;
-  //   }
+  // if (_files.Count == 0)
+  // {
+  // // Mostrar mensaje de error: No se han seleccionado archivos.
+  // return;
+  // }
 
-  //   foreach (var file in _files) // Itera sobre la lista de archivos
-  //   {
-  //     try
-  //     {
-  //       var fileName = Path.GetFileName(file.Name);
-  //       var newFileName = $"{NroReserva}_{Path.GetExtension(file.Name)}"; // Formato de fecha para evitar caracteres inválidos en nombres de archivo
-  //       var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pictures", "Mochilas", "Comprobantes", newFileName);
+  // foreach (var file in _files) // Itera sobre la lista de archivos
+  // {
+  // try
+  // {
+  // var fileName = Path.GetFileName(file.Name);
+  // var newFileName = $"{NroReserva}_{Path.GetExtension(file.Name)}";
+  // var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pictures", "Mochilas",
+  // "Comprobantes",newFileName);
 
-  //       Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pictures", "Mochilas", "Comprobantes")); // Asegurar que el directorio existe
+  // Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+  // "pictures","Mochilas","Comprobantes")); // Asegurar que el directorio existe
 
-  //       await using FileStream fs = new(filePath, FileMode.Create);
-  //       await file.OpenReadStream().CopyToAsync(fs);
+  // await using FileStream fs = new(filePath, FileMode.Create);
+  // await file.OpenReadStream().CopyToAsync(fs);
 
-  //       // Opcional: Guardar la ruta en la base de datos, etc.
-  //       //       Console.WriteLine($"Archivo guardado: {filePath}"); // Mensaje de confirmación
+  // // Opcional: Guardar la ruta en la base de datos, etc.
+  // // Console.WriteLine($"Archivo guardado: {filePath}"); // Mensaje de confirmación
 
-  //     }
-  //     catch (Exception ex)
-  //     {
-  //       Console.WriteLine($"Error al subir el archivo {file.Name}: {ex.Message}");
-  //       // Mostrar mensaje de error al usuario
-  //     }
-  //   }
-  //   _files.Clear(); // Limpiar la lista después de guardar los archivos
+  // }
+  // catch (Exception ex)
+  // {
+  // Console.WriteLine($"Error al subir el archivo {file.Name}: {ex.Message}");
+  // // Mostrar mensaje de error al usuario
+  // }
+  // }
+  // _files.Clear(); // Limpiar la lista después de guardar los archivos
   // }
 
 
@@ -331,9 +338,10 @@ private string qrReservaSource = "";
 
       foreach (var file in files)
       {
-        
+
         var newFileName = $"{NroDeReserva}_{DateTime.Now.ToString("yyyyMMddhhmmssff")}{Path.GetExtension(file.Name)}";
-        var fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024)); // 5MB limit. Adjust as needed.
+        StreamContent? fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024));
+        // 5MBlimit.Adjustas needed.
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
         content.Add(fileContent, "files", newFileName); // "files" MUST match @RequestPart("files")
       }
@@ -345,7 +353,9 @@ private string qrReservaSource = "";
       @* content.Add(new StringContent(subfolder), "subfolder"); // Add subfolder parameter *@
 
       using var client = new HttpClient();
-      var response = await client.PostAsync("http://secsantiago.com.ar:8080/api/v1/upload-files?subfolder=" + subfolder, content);
+
+      var response = await client.PostAsync("https://fileserver.secsantiago.com.ar/api/v1/upload-files?subfolder=" +
+      subfolder, content);
 
       @* using var client = new HttpClient();
         // Set the base address of your API
@@ -370,8 +380,8 @@ private string qrReservaSource = "";
         // Console.WriteLine($"Error: {response.ReasonPhrase}");
         // if (response.Content != null)
         // {
-        //     var errorDetails = await response.Content.ReadAsStringAsync();
-        //     Console.WriteLine($"Error Details: {errorDetails}");
+        // var errorDetails = await response.Content.ReadAsStringAsync();
+        // Console.WriteLine($"Error Details: {errorDetails}");
         // }
       }
     }
@@ -395,32 +405,31 @@ private string qrReservaSource = "";
 
   // private async Task OnImageUploaded(IList<IBrowserFile> files)
   // {
-  //   _isUploading = true;
+  // _isUploading = true;
 
-  //   file = files.FirstOrDefault();
-  //   if (file != null)
-  //   {
-  //     _fileName = file.Name;
-  //     var content = new MultipartFormDataContent();
-  //     content.Add(new StreamContent(file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024)), "files", file.Name);
+  // file = files.FirstOrDefault();
+  // if (file != null)
+  // {
+  // _fileName = file.Name;
+  // var content = new MultipartFormDataContent();
+  // content.Add(new StreamContent(file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024)), "files", file.Name);
 
-  //     using var client = new HttpClient();
-  //     var response = await client.PostAsync("http://localhost:8080/api/v1/upload-files?subfolder=", content);
+  // using var client = new HttpClient();
+  // var response = await client.PostAsync("http://localhost:8080/api/v1/upload-files?subfolder=", content);
 
-  //     if (response.IsSuccessStatusCode)
-  //     {
-  //       _imageUrl = $"http://localhost:8080/api/v1/download/{_fileName}";
-  //     }
-  //     else
-  //     {
-  //       // Manejar error
-  //       Console.WriteLine($"Error: {response.StatusCode}");
-  //     }
-  //   }
-  //   _isUploading = false;
+  // if (response.IsSuccessStatusCode)
+  // {
+  // _imageUrl = $"http://localhost:8080/api/v1/download/{_fileName}";
+  // }
+  // else
+  // {
+  // // Manejar error
+  // Console.WriteLine($"Error: {response.StatusCode}");
+  // }
+  // }
+  // _isUploading = false;
   // }
 
 
 
 }
-

@@ -18,7 +18,7 @@
       <MudPaper Class="pa-5">
         <div class="qr-in">
 
-          <MudButton @onclick="StartScanning" Variant="Variant.Filled" Class="ma-5" Raised
+          <MudButton @onclick="StartScanning" Variant="Variant.Filled" Color="Color.Primary" Class="ma-5" Raised
             EndIcon="@Icons.Material.Filled.QrCodeScanner"
             Disabled="@(!_isConected || selectedEventosAño == null || !_isPrinterSelected)">
             Start QR Scanner
@@ -42,12 +42,12 @@
           Disabled="@(!_isConected && _isLoading || selectedEventosAño == null)">
         </MudTextField>
         <MudButton @onclick="sendPrinting" Variant="Variant.Filled" Class="ma-5" Raised
-          EndIcon="@Icons.Material.Filled.CheckCircleOutline"
+          EndIcon="@Icons.Material.Filled.CheckCircleOutline" Color="Color.Primary"
           Disabled="@(!_isConected && _isLoading || selectedEventosAño == null || !_isPrinterSelected)">
           Validar
         </MudButton>
         <MudButton @onclick="sendPrintingTest" Variant="Variant.Filled" Class="ma-5" Raised
-          EndIcon="@Icons.Material.Filled.Print"
+          EndIcon="@Icons.Material.Filled.Print" Color="Color.Tertiary"
           Disabled="@(!_isConected && _isLoading || selectedEventosAño == null || !_isPrinterSelected)">
           TestPrint
         </MudButton>

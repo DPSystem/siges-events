@@ -1,5 +1,9 @@
 ﻿<MudNavMenu>
 
+    <MudNavLink Href="reservas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Work"
+        Edge="Edge.End">
+        Reserva Mochila</MudNavLink>
+
     @* <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Search">
         Dónde voto?</MudNavLink> *@
 
@@ -16,9 +20,7 @@
 <AuthorizeView Roles="Admin">
     <Authorized>
         <MudNavMenu>
-            <MudNavLink Href="reservas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Work"
-                Edge="Edge.End">
-                Reserva Mochila</MudNavLink>
+            
             <MudNavLink Href="scanqr" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.QrCode2"
                 Edge="Edge.End">
                 Scan QR</MudNavLink>

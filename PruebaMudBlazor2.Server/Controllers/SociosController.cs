@@ -20,7 +20,7 @@ namespace PruebaMudBlazor2.Server.Controllers
             _context = context;
         }
 
-        // Reemplaza a ExisteEmpleado(string? NroDni)
+        [AllowAnonymous]
         [HttpGet("{dni}")]
         public async Task<ActionResult<Maesoc>> GetSocioByDni(string dni)
         {
@@ -34,6 +34,7 @@ namespace PruebaMudBlazor2.Server.Controllers
         }
 
         // Reemplaza a GetsocioBool(string? NroDni)
+        [AllowAnonymous]
         [HttpGet("{dni}/essocio")]
         public async Task<ActionResult<bool>> EsSocioActivo(string dni)
         {
@@ -54,6 +55,7 @@ namespace PruebaMudBlazor2.Server.Controllers
             return Ok(maesoc.SoccenEstado == 1);
         }
 
+        [AllowAnonymous]
         [HttpGet("cuil/{cuil:double}")]
         public async Task<ActionResult<Maesoc>> GetSocioByCuil(double cuil)
         {
@@ -68,6 +70,7 @@ namespace PruebaMudBlazor2.Server.Controllers
         }
 
         // Reemplaza a GetFotoTitular(double NroCuil)
+        [AllowAnonymous]
         [HttpGet("{cuil:double}/foto")]
         public async Task<ActionResult<Foto>> GetFotoTitular(double cuil)
         {
@@ -80,6 +83,7 @@ namespace PruebaMudBlazor2.Server.Controllers
         }
 
         // Reemplaza a GetCarencia(double cuil)
+        [AllowAnonymous]
         [HttpGet("{cuil:double}/carencia")]
         public async Task<ActionResult<bool>> GetCarencia(double cuil)
         {
@@ -94,6 +98,7 @@ namespace PruebaMudBlazor2.Server.Controllers
         }
 
         // Reemplaza a CumpleConAporteMinimo(double cuil)
+        [AllowAnonymous]
         [HttpGet("{cuil:double}/aporteminimo")]
         public async Task<ActionResult<bool>> CumpleConAporteMinimo(double cuil)
         {

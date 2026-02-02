@@ -13,7 +13,7 @@
 @inject IEventosApiClient EventosApi
 
 <div class="reserva-main">
-  <MudText Typo="Typo.h6">RESERVA DE MOCHILAS</MudText>
+  <MudText Typo="Typo.h6">RESERVA DE MOCHILAS 2026</MudText>
   <MudChip T="string">Reserva o consulta tu pedido Ingresando tu DNI</MudChip>
 
 
@@ -22,8 +22,8 @@
       <div class="user-validate">
         <MudTextField @bind-Value="@NroDni" Label="DNI" PlaceHolder="Ingresa tu DNI" Reverse="false" tabindex="0"
           Disabled="@btnValidarVisible" OnKeyDown="OnKeyPressHandler" MaxLength="8" @ref="txtDni"></MudTextField>
-        <MudButton Variant="Variant.Filled" Raised @onclick="ValidarUsuario" EndIcon="@Icons.Material.Filled.Check"
-          @bind-Disabled="@btnValidarVisible">Validar</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Raised @onclick="ValidarUsuario"
+          EndIcon="@Icons.Material.Filled.Check" @bind-Disabled="@btnValidarVisible">Validar</MudButton>
         <MudButton Variant="Variant.Filled" Raised OnClick="Limpiar" EndIcon="@Icons.Material.Filled.Close"
           Color="Color.Error" Disabled="@(btnCancelIsDisable)">Cancelar</MudButton>
       </div>
@@ -224,7 +224,7 @@
             }
             else
             {
-              Snackbar.Add("NO podes realizar tu Reserva - Tu Aporte no Cumple el Minimo de $10 000", Severity.Info);
+              Snackbar.Add("NO podes realizar tu Reserva - Tu Aporte no Cumple el Minimo de $11 000", Severity.Info);
               Limpiar();
             }
           }
