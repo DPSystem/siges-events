@@ -17,6 +17,9 @@
 <MudDialog @bind-Visible="_visible">
   <TitleContent>
     <h3>Informacion de Reserva</h3>
+    <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.Warning">
+      Complete el Celular que es obligatorio
+    </MudChip>
   </TitleContent>
   <DialogContent>
     @if (socio != null)
@@ -71,7 +74,7 @@
 
     <div>
       @* HeaderClass="custom-header" HeaderStyle="background-color: #2196F3; color: white; font-weight: bold;" *@
-      <MudTable T="Alumno" Items="@alumnos" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
+      <MudTable T="Alumno" Items="@alumnos.Where(a => a.Mochila != 0).ToList()" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
         RowClass="cursor-pointer" GroupHeaderStyle="background-color:var(--mud-palette-background-gray)">
         <HeaderContent>
           <th>Nombre</th>
@@ -91,20 +94,27 @@
     @if (btnConfirmarIsVisible)
     {
       <p>
-        <MudTextField Immediate="true" Label="Nº de Celular" HelperText="Solo números, 10 dígitos"
+
+        @* <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning">Celular obligatorio</MudChip> *@
+        <MudTextField Immediate="true" Label="Nº de Celular *" HelperText="Solo números, 10 dígitos"
+          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
+          AdornmentColor="MudBlazor.Color.Warning"
           Validation="@(new Func<string, IEnumerable<string>>(ValidatePhoneNumber))" @bind-Value="@NroDeCelular"
           Variant="@Variant.Text" Clearable InputType="InputType.Number" MaxLength="10" />
+
       </p>
     }
     @* <MudImage src="@QRByte" alt="Foto" Width="300"/> *@
     @* <div><img alt="" src="@QRByte" width="300" class="mb-5" hidden="@btnConfirmarIsVisible" /></div>
     <div data-url="@QRByte"></div> *@
     <MudStack AlignItems="AlignItems.Center" Spacing="4">
-      <MudPaper Class="pa-4" Elevation="3">
-        @* <MudText Typo="Typo.subtitle1" Align="Align.Center">Código de Cupón</MudText> *@
-        <MudImage Src="@qrCuponSource" Width="200" Height="200" Alt="QR Cupón" />
-      </MudPaper>
-
+      @if (!btnConfirmarIsVisible)
+      {
+        <MudPaper Class="pa-4" Elevation="3">
+          @* <MudText Typo="Typo.subtitle1" Align="Align.Center">Código de Cupón</MudText> *@
+          <MudImage Src="@qrCuponSource" Width="200" Height="200" Alt="QR Cupón" />
+        </MudPaper>
+      }
       @* <MudPaper Class="pa-4" Elevation="3">
         <MudText Typo="Typo.subtitle1" Align="Align.Center">Código de Reserva</MudText>
         <MudImage Src="@qrReservaSource" Width="200" Height="200" Alt="QR Reserva" />

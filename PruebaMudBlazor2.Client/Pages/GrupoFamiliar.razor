@@ -2,6 +2,7 @@
 
 <MudPaper>
   <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+
     <MudList T="string">
       @foreach (var alumno in alumnos)
       {
@@ -23,7 +24,7 @@
         <MudListItem>
           <ChildContent>
             <MudSelect @bind-Value="alumno.CicloEscolar" Label="Ciclo escolar" Required="true"
-              RequiredError="Ciclo escolar  es requerido!" Placeholder="Por favor selecciona">
+              RequiredError="Ciclo escolar es requerido!" Placeholder="Por favor selecciona">
               @foreach (var item in ciclos)
               {
                 <MudSelectItem Value="item.Mochila">@item.Mochila</MudSelectItem>
@@ -40,12 +41,13 @@
           </ChildContent>
         </MudListItem>
         <MudDivider />
-        <MudListItem Disabled="@ValidaEdad(alumno.Edad)">
+        <MudListItem Disabled="@ShouldDisableFileUpload(alumno)">
           <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
             @*  Este es el metodo que te va almacenando ls fotos que subes  *@
             <ActivatorContent>
-              <MudBadge Content="@_files.Count()" Overlap="true" Class="mx-6 my-4" Color="MudBlazor.Color.Info">
-                <MudButton Variant="Variant.Filled" FullWidth Disabled="@ValidaEdad(alumno.Edad)"
+              <MudBadge Content="@_files.Count()" Overlap="true" Visible="@(!ShouldDisableFileUpload(alumno))"
+                Class="mx-6 my-4" Color="MudBlazor.Color.Info">
+                <MudButton Variant="Variant.Filled" FullWidth Disabled="@ShouldDisableFileUpload(alumno)"
                   StartIcon="@Icons.Material.Filled.CloudUpload">
                   Adjuntar Documentos
                 </MudButton>
@@ -63,7 +65,7 @@
                  ButtonType="ButtonType.Submit" Disabled="@(!success)">Finalizar</MudButton> *@
       <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Filled.Check" OnClick="OnCicloChanged"
         Color="Color.Primary" Disabled="@(!success)">Finalizar</MudButton>
-      @* <MudIconButton Icon="@MudIconNames.Favorite"></MudIconButton>
+      @* <MudIconButton Icon="@Icons.Material.Filled.Favorite"></MudIconButton>
     <MudIconButton Icon="@MudIconNames.Dashboard"></MudIconButton> *@
 
     </MudCardActions>
@@ -84,6 +86,20 @@
   [Parameter]
   public List<Alumno> alumnos { get; set; }
 
+  protected override void OnParametersSet()
+  {
+    if (alumnos != null)
+    {
+      foreach (var alu in alumnos)
+      {
+        if (string.IsNullOrEmpty(alu.CicloEscolar))
+        {
+          alu.CicloEscolar = "No Estudia";
+        }
+      }
+    }
+  }
+
   private Alumno alumno;
   // public Alumno alumno { get; set; }
 
@@ -97,17 +113,14 @@
     foreach (var alu in alumnos)
     {
       alu.Mochila = ciclos.Where(x => x.Mochila == alu.CicloEscolar).First().Id;
-      // alu.Mochila = Convert.ToInt32 (from a in ciclos where a.Mochila == alu.CicloEscolar select new { a.Id });
     }
 
-    // };
-
-    // alumno = alumnos.First();
-    //alumno.CicloEscolar = alumno.CicloEscolar; // Actualiza el ciclo escolar en el objeto Alumno
+    // Filter out students where Mochila is 0 (i.e., "No Estudia")
+    var alumnosToSave = alumnos.Where(a => a.Mochila != 0).ToList();
 
     await OnCicloSeleccionado.InvokeAsync(new CicloSeleccionadoEventArgs
     {
-      Alumnos = alumnos,
+      Alumnos = alumnosToSave, // Pass the filtered list
       Files = _files
     }); // Lanza el evento con el Alumno actualizado
   }
@@ -135,6 +148,7 @@
 
   public List<ciclo> ciclos = new List<ciclo>
 {
+new ciclo {Id = 0, Mochila="No Estudia" },
 new ciclo {Id = 1, Mochila="Jardin Mujer Salita 3/4/5" },
 new ciclo {Id = 2, Mochila="Jardin Varon Salita 3/4/5" },
 new ciclo {Id = 3, Mochila= "Primaria I Mujer de 1º a 3º Grado"},
@@ -143,7 +157,7 @@ new ciclo {Id = 5, Mochila= "Primaria II Mujer de 4º a 7º Grado"},
 new ciclo {Id = 6, Mochila= "Primaria II Varon de 4º a 7º Grado"},
 new ciclo {Id = 7, Mochila= "Secundario Mujer"},
 new ciclo {Id = 8, Mochila= "Secundario Varon"},
-new ciclo {Id = 9, Mochila= "Terciario / Universitario (BOUCHER)"}
+new ciclo {Id = 9, Mochila= "Terciario / Universitario (VOUCHER)"}
 };
 
   public class ciclo()
@@ -162,6 +176,25 @@ new ciclo {Id = 9, Mochila= "Terciario / Universitario (BOUCHER)"}
     return !(edad.Value >= 20);
   }
 
+  private bool ShouldDisableFileUpload(Alumno currentAlumno)
+  {
+    // First, apply the existing age validation
+    @* if (ValidaEdad(currentAlumno.Edad))
+    {
+      return true; // Already disabled by age
+    } *@
+
+    // Now, check if "No Estudia" is selected
+    var selectedCiclo = ciclos.FirstOrDefault(c => c.Mochila == currentAlumno.CicloEscolar);
+    Console.WriteLine("CLiclo " + selectedCiclo.Id);
+    if (selectedCiclo != null && selectedCiclo.Id == 0)
+    {
+      return true; // Disable if "No Estudia" is selected
+    }
+
+    return false; // Otherwise, enable
+  }
+
   IList<IBrowserFile> _files = new List<IBrowserFile>();
 
   private void UploadFiles(IBrowserFile file)
@@ -172,6 +205,15 @@ new ciclo {Id = 9, Mochila= "Terciario / Universitario (BOUCHER)"}
   }
 
   private bool found = false;
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await form.Validate();
+      StateHasChanged();
+    }
+  }
 
   private void ValidarUsuario()
   {
