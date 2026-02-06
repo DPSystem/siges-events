@@ -17,9 +17,12 @@
 <MudDialog @bind-Visible="_visible">
   <TitleContent>
     <h3>Informacion de Reserva</h3>
-    <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.Warning">
-      Complete el Celular que es obligatorio
-    </MudChip>
+    @if (btnConfirmarIsVisible)
+    {
+      <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.Warning">
+        Complete el Celular que es obligatorio
+      </MudChip>
+    }
   </TitleContent>
   <DialogContent>
     @if (socio != null)
@@ -73,22 +76,25 @@
     <br />
 
     <div>
-      @* HeaderClass="custom-header" HeaderStyle="background-color: #2196F3; color: white; font-weight: bold;" *@
-      <MudTable T="Alumno" Items="@alumnos.Where(a => a.Mochila != 0).ToList()" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
-        RowClass="cursor-pointer" GroupHeaderStyle="background-color:var(--mud-palette-background-gray)">
-        <HeaderContent>
-          <th>Nombre</th>
-          <th>Mochila</th>
-          <th>Fecha de Reserva</th>
-        </HeaderContent>
-        <RowTemplate>
-          <MudTd DataLabel="Nombre">@context.Apenom</MudTd>
-          <MudTd DataLabel="Mochila">@context.CicloEscolar</MudTd>
-          <MudTd DataLabel="Fecha de Reserva">@DateTime.Now</MudTd>
-        </RowTemplate>
+      @if (btnConfirmarIsVisible)
+      {
+        @* HeaderClass="custom-header" HeaderStyle="background-color: #2196F3; color: white; font-weight: bold;" *@
+        <MudTable T="Alumno" Items="@(alumnos?.Where(a => a.Mochila != 0).ToList() ?? new List<Alumno>())" Hover="true"
+                  Breakpoint="Breakpoint.Sm"                @ref="mudTable" RowClass="cursor-pointer"
+                  GroupHeaderStyle="background-color:var(--mud-palette-background-gray)">
+          <HeaderContent>
+            <th>Nombre</th>
+            <th>Mochila</th>
+            <th>Fecha de Reserva</th>
+          </HeaderContent>
+          <RowTemplate>
+            <MudTd DataLabel="Nombre">@context.Apenom</MudTd>
+            <MudTd DataLabel="Mochila">@context.CicloEscolar</MudTd>
+            <MudTd DataLabel="Fecha de Reserva">@DateTime.Now</MudTd>
+          </RowTemplate>
 
-      </MudTable>
-
+        </MudTable>
+      }
     </div>
     <br />
     @if (btnConfirmarIsVisible)
@@ -97,10 +103,10 @@
 
         @* <MudChip T="string" Variant="Variant.Text" Color="MudBlazor.Color.Warning">Celular obligatorio</MudChip> *@
         <MudTextField Immediate="true" Label="Nº de Celular *" HelperText="Solo números, 10 dígitos"
-          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
-          AdornmentColor="MudBlazor.Color.Warning"
-          Validation="@(new Func<string, IEnumerable<string>>(ValidatePhoneNumber))" @bind-Value="@NroDeCelular"
-          Variant="@Variant.Text" Clearable InputType="InputType.Number" MaxLength="10" />
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
+                      AdornmentColor="MudBlazor.Color.Warning"
+                      Validation="@(new Func<string, IEnumerable<string>>(ValidatePhoneNumber))" @bind-Value="@NroDeCelular"
+                      Variant="@Variant.Text" Clearable InputType="InputType.Number" MaxLength="10" />
 
       </p>
     }
@@ -126,7 +132,7 @@
     @if (btnConfirmarIsVisible)
     {
       <MudButton Variant="Variant.Filled" OnClick="@FinalizarReserva"
-        Disabled="@(ValidatePhoneNumber(NroDeCelular).Any() || btnConfirmarIsDisable)">Confirmar Reserva</MudButton> @* OnClick="@FinalizarReserva" *@
+                 Disabled="@(ValidatePhoneNumber(NroDeCelular).Any() || btnConfirmarIsDisable)">Confirmar Reserva</MudButton> @* OnClick="@FinalizarReserva" *@
     }
 
   </DialogActions>
@@ -256,38 +262,38 @@
   {
     btnConfirmarIsDisable = true;
 
-    string CuilTitular = alumnos.FirstOrDefault().CuilTitular.ToString();
-
-    if (CuilTitular != null) // Verifica que haya un alumno en la lista
+    if (alumnos == null || !alumnos.Any())
     {
-      int Estado = alumnos.Where(x => x.Edad >= 20).Count() > 0 ? 2 : 0;
-      int NewNroDeReserva = await SindicatoService.SetReservaMochila(CuilTitular, NroDeCelular, Estado, EventosAñoId);
-      bool alumnoMochila = await SindicatoService.SetAlumnoMochila(alumnos, NewNroDeReserva, EventosAñoId);
-      NroDeReserva = NewNroDeReserva;
-      //await GuardarFoto(NewNroDeReserva); // Guardo la foto en disco
-      if (true)//alumnoMochila)
+      Snackbar.Add("No hay alumnos para procesar la reserva.", Severity.Warning);
+      btnConfirmarIsDisable = false;
+      return;
+    }
+
+    var primerAlumno = alumnos.First();
+    string CuilTitular = primerAlumno.CuilTitular.ToString();
+
+    int Estado = alumnos.Where(x => x.Edad >= 20).Count() > 0 ? 2 : 0;
+    int NewNroDeReserva = await SindicatoService.SetReservaMochila(CuilTitular, NroDeCelular, Estado, EventosAñoId);
+    bool alumnoMochila = await SindicatoService.SetAlumnoMochila(alumnos, NewNroDeReserva, EventosAñoId);
+    NroDeReserva = NewNroDeReserva;
+
+    if (alumnoMochila)
+    {
+      Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+      Snackbar.Add("Su reserva fue EXITOSA", Severity.Success);
+
+      if (_files2 != null && _files2.Any())
       {
-        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-        Snackbar.Add("Su reserva fue EXITOSA", Severity.Success);
-
         await UploadFiles(_files2, "comprobantes");
-
-        MudDialog.Close();
-        NavigationManager.NavigateTo("/");
-        return;
-        // Aqui hay que mostrar que la reserva ofue exitosa como hacemos
-
       }
 
+      MudDialog.Close(DialogResult.Ok(true));
     }
     else
     {
-      // // Manejar el caso en que la lista de alumnos está vacía
-      // // Por ejemplo, mostrar un mensaje de error al usuario.
-      // Console.WriteLine("La lista de alumnos está vacía.");
+      Snackbar.Add("Hubo un error al procesar la reserva.", Severity.Error);
+      btnConfirmarIsDisable = false;
     }
-
-    // await OnReservaConfirmada.InvokeAsync(alumnos);
   }
 
   IList<IBrowserFile> _files = new List<IBrowserFile>();

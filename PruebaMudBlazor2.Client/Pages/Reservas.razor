@@ -149,7 +149,14 @@
     this.cicloSeleccionadoEventArgs.Alumnos = cicloSeleccionadoEventArgs.Alumnos;
     this.cicloSeleccionadoEventArgs.Files = cicloSeleccionadoEventArgs.Files;
     btnConfirmarIsVisible = true;
-    await OpenDialogAsync();
+
+    var dialog = await OpenDialogAsync();
+    var result = await dialog.Result;
+
+    if (!result.Canceled)
+    {
+      await ValidarUsuario();
+    }
 
     StateHasChanged();
   }
@@ -217,7 +224,7 @@
               }
               else
               {
-                Snackbar.Add("El socio SI Tiene Reserva", Severity.Info);
+                @* Snackbar.Add("El socio SI Tiene Reserva", Severity.Info); *@
               }
               await VerificarVariable();
               btnCancelIsDisable = false;
@@ -291,7 +298,7 @@
 
   private EventosCupone Reserva;
 
-  private Task OpenDialogAsync()
+  private Task<IDialogReference> OpenDialogAsync()
   {
     var options = new DialogOptions { CloseOnEscapeKey = true };
     var parameters = new DialogParameters<DialogInfo>

@@ -173,16 +173,16 @@ new ciclo {Id = 9, Mochila= "Terciario / Universitario (VOUCHER)"}
     {
       return true; // Disable if age is unknown
     }
-    return !(edad.Value >= 20);
+    return !(edad.Value >= 16);
   }
 
   private bool ShouldDisableFileUpload(Alumno currentAlumno)
   {
     // First, apply the existing age validation
-    @* if (ValidaEdad(currentAlumno.Edad))
+    if (ValidaEdad(currentAlumno.Edad))
     {
       return true; // Already disabled by age
-    } *@
+    }
 
     // Now, check if "No Estudia" is selected
     var selectedCiclo = ciclos.FirstOrDefault(c => c.Mochila == currentAlumno.CicloEscolar);

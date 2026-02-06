@@ -1,276 +1,338 @@
-﻿@using System.Net.Http.Json
-@* @using Models *@
+﻿@page "/ReservasPendientes"
+@using PruebaMudBlazor2.Services
+@using PruebaMudBlazor2.Shared.Models
 @rendermode InteractiveServer
-@inject NavigationManager Navigation
+@inject Services.ISindicatoService SindicatoService
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
+<PageTitle>Reservas Pendientes de Aprobación</PageTitle>
 
-@* @inject HttpClient httpClient *@
+@* <MudContainer MaxWidth="MaxWidth.False" Gutters="false" Class="mt-4" Style="padding-left: 24px; padding-right: 24px;"> *@
+<MudContainer MaxWidth="MaxWidth.False" Gutters="false" Class="mt-4 pz-0">
+  <MudText Typo="Typo.h4" Class="mb-4">
+    <MudIcon Icon="@Icons.Material.Filled.PendingActions" Class="mr-2" />
+    Reservas Pendientes de Aprobación
+  </MudText>
 
-@page "/ReservasPendientes"
+  <MudPaper Elevation="3" Class="pa-0" Style="width: 100%;">
+    @if (_loading)
+    {
+      <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+      <MudText Align="Align.Center">Cargando reservas pendientes...</MudText>
+    }
+    else if (_reservasPendientes == null || !_reservasPendientes.Any())
+    {
+      <MudAlert Severity="Severity.Info" Class="my-4">
+        <MudText>No hay reservas pendientes de aprobación.</MudText>
+      </MudAlert>
+    }
+    else
+    {
+      <MudTable Items="@_reservasPendientes" Hover="true" Striped="true" Dense="true" Loading="@_loading"
+        LoadingProgressColor="Color.Primary" T="ReservaPendiente" Elevation="0" Style="width: 100%; table-layout: fixed;">
+        <HeaderContent>
+          <MudTh Style="background-color: #1976d2; color: white; font-weight: bold;">
+            <MudTableSortLabel SortBy="new Func<ReservaPendiente, object>(x => x.NroReserva)" Style="color: white;">
+              Nro Reserva
+            </MudTableSortLabel>
+          </MudTh>
+          <MudTh Style="background-color: #1976d2; color: white; font-weight: bold;">
+            <MudTableSortLabel SortBy="new Func<ReservaPendiente, object>(x => x.FechaReserva)" Style="color: white;">
+              Fecha
+            </MudTableSortLabel>
+          </MudTh>
+          <MudTh Style="background-color: #1976d2; color: white; font-weight: bold;">DNI</MudTh>
+          <MudTh Style="background-color: #1976d2; color: white; font-weight: bold;">Nro Socio</MudTh>
+          <MudTh Style="background-color: #1976d2; color: white; font-weight: bold;">Apellido y Nombre</MudTh>
+          <MudTh Style="background-color: #1976d2; color: white; font-weight: bold;">Celular</MudTh>
+          <MudTh Style="background-color: #1976d2; color: white; font-weight: bold; text-align:center;">Benef.</MudTh>
+          <MudTh Style="background-color: #1976d2; color: white; font-weight: bold; text-align:center;">Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+          <MudTd DataLabel="Nro Reserva">
+            <MudChip T="string" Color="Color.Primary" Size="Size.Small">@context.NroReserva</MudChip>
+          </MudTd>
+          <MudTd DataLabel="Fecha">@context.FechaReserva.ToString("dd/MM/yyyy HH:mm")</MudTd>
+          <MudTd DataLabel="DNI">@context.Dni</MudTd>
+          <MudTd DataLabel="Nro Socio">@context.NroSocio</MudTd>
+          <MudTd DataLabel="Apellido y Nombre">@context.ApellidoNombre</MudTd>
+          <MudTd DataLabel="Celular">@context.Celular</MudTd>
+          <MudTd DataLabel="Beneficiarios" Style="text-align:center">
+            <MudBadge Content="@context.Beneficiarios.Count" Color="Color.Info" Overlap="false">
+              <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" />
+            </MudBadge>
+          </MudTd>
+          <MudTd DataLabel="Acciones" Style="text-align:center; white-space: nowrap;">
+            <MudIconButton Icon="@Icons.Material.Outlined.Visibility" Color="Color.Info" Size="Size.Small"
+              OnClick="@(() => VerDocumentos(context))" />
+            <MudIconButton Icon="@Icons.Material.Outlined.Groups" Color="Color.Dark" Size="Size.Small"
+              OnClick="@(() => VerBeneficiarios(context))" />
+            <MudIconButton Icon="@Icons.Material.Outlined.ThumbUp" Color="Color.Success" Size="Size.Small"
+              OnClick="@(() => ConfirmarAprobacion(context))" />
+            <MudIconButton Icon="@Icons.Material.Outlined.ThumbDown" Color="Color.Error" Size="Size.Small"
+              OnClick="@(() => ConfirmarRechazo(context))" />
+          </MudTd>
+        </RowTemplate>
+        <PagerContent>
+          <MudTablePager PageSizeOptions="new int[] { 5, 10, 25, 50 }" RowsPerPageString="Filas por página:" />
+        </PagerContent>
+      </MudTable>
+    }
 
-@* <input type="file" accept="image/*" capture> *@
-<br>
-<h3>RESERVAS PENDIENTES</h3>
-<br>
-<MudTable Items="@Elements.Take(4)" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info">
-  <HeaderContent>
-    <MudTh>Nro Reserva</MudTh>
-    <MudTh>Fecha de Reserva</MudTh>
-    <MudTh>Apellido y Nombre</MudTh>
-    <MudTh>Acciones</MudTh>
-  </HeaderContent>
-  <RowTemplate>
-    <MudTd DataLabel="Nro Reserva">@context.NroReserva</MudTd>
-    <MudTd DataLabel="Fecha de Reserva">@context.FechaReserva.ToString("yyyy-MM-dd")</MudTd>
-    <MudTd DataLabel="Apellido y Nombre">@context.ApellidoYNombres</MudTd>
-    <MudTd DataLabel="Acciones">
-      <!-- Botones de acción -->
-      <MudIconButton Icon="@Icons.Material.Outlined.Preview" aria-label="ver"
-                     OnClick="() => MostrarDetalles()" title="ver documentos" Color="Color.Info" />
-      <MudIconButton Icon="@Icons.Material.Outlined.ViewAgenda" aria-label="ver" title="ver grupo familiar"
-                     OnClick="() => VerReserva()" Color="Color.Default" />
-      <MudIconButton Icon="@Icons.Material.Outlined.ThumbDown" aria-label="ver" title="Rechazar"
-                     OnClick="() => RechazarReserva()" Color="Color.Error" />
-      <MudIconButton Icon="@Icons.Material.Outlined.ThumbUp" aria-label="ver" title="Rechazar"
-                     OnClick="() => AprobarReserva()" Color="Color.Success" />
-      @* <MudButton Color="Color.Primary" >Ver</MudButton>
-      <MudButton Color="Color.Success" >Aprobar</MudButton>
-      <MudButton Color="Color.Info" OnClick="@MostrarDetalles">Mostrar</MudButton> *@
-    </MudTd>
-  </RowTemplate>
-</MudTable>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" StartIcon="@Icons.Material.Filled.Refresh"
+      OnClick="CargarReservas">
+      Actualizar
+    </MudButton>
+  </MudPaper>
+</MudContainer>
 
-<!-- Diálogo para mostrar detalles -->
-<MudDialog @bind-Visible="_dialogOpen">
+@* Diálogo para ver documentos adjuntos *@
+<MudDialog @bind-Visible="_dialogDocumentosVisible" Options="@_dialogOptions">
+  <TitleContent>
+    <MudText Typo="Typo.h6">
+      <MudIcon Icon="@Icons.Material.Filled.AttachFile" Class="mr-2" />
+      Documentos de Reserva #@_reservaSeleccionada?.NroReserva
+    </MudText>
+  </TitleContent>
   <DialogContent>
-    <MudTable Items="detallesReserva" Striped="true" Hover="true">
-      <HeaderContent>
-        <MudTh>Nombre</MudTh>
-        <MudTh>Fecha</MudTh>
-      </HeaderContent>
-      <RowTemplate>
-        <MudTd>@context.Nombre</MudTd>
-        <MudTd>@context.Fecha.ToString("yyyy-MM-dd")</MudTd>
-      </RowTemplate>
-    </MudTable>
+    @if (_reservaSeleccionada != null)
+    {
+      <MudText Class="mb-2"><strong>Socio:</strong> @_reservaSeleccionada.ApellidoNombre</MudText>
+      <MudText Class="mb-4"><strong>DNI:</strong> @_reservaSeleccionada.Dni</MudText>
+
+      <MudDivider Class="mb-4" />
+
+      @if (_archivosAdjuntos != null && _archivosAdjuntos.Any())
+      {
+        <MudGrid Spacing="2">
+          @foreach (var archivo in _archivosAdjuntos)
+          {
+            <MudItem xs="12" sm="6" md="4">
+              <MudCard Elevation="2">
+                <MudCardMedia Image="@archivo" Height="200" Alt="Documento"
+                  Style="object-fit: contain; background-color: #f5f5f5;" />
+                <MudCardActions>
+                  <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.OpenInNew"
+                    Href="@archivo" Target="_blank">
+                    Ver completo
+                  </MudButton>
+                </MudCardActions>
+              </MudCard>
+            </MudItem>
+          }
+        </MudGrid>
+      }
+      else
+      {
+        <MudAlert Severity="Severity.Warning">
+          No se encontraron documentos adjuntos para esta reserva.
+        </MudAlert>
+      }
+    }
   </DialogContent>
   <DialogActions>
-    <MudButton Color="Color.Primary" OnClick="CerrarDialogo">Cerrar</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.ThumbUp"
+      OnClick="@(() => ConfirmarAprobacion(_reservaSeleccionada))">
+      Aprobar
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.ThumbDown"
+      OnClick="@(() => ConfirmarRechazo(_reservaSeleccionada))">
+      Rechazar
+    </MudButton>
+    <MudButton Variant="Variant.Outlined" OnClick="CerrarDialogoDocumentos">
+      Cerrar
+    </MudButton>
   </DialogActions>
 </MudDialog>
 
-<!-- Diálogo para mostrar Documentos subidos -->
-<MudDialog @bind-Visible="_dialogOpenDoc">
+@* Diálogo para ver beneficiarios *@
+<MudDialog @bind-Visible="_dialogBeneficiariosVisible" Options="@_dialogOptions">
+  <TitleContent>
+    <MudText Typo="Typo.h6">
+      <MudIcon Icon="@Icons.Material.Filled.Groups" Class="mr-2" />
+      Beneficiarios - Reserva #@_reservaSeleccionada?.NroReserva
+    </MudText>
+  </TitleContent>
   <DialogContent>
-    <MudContainer>
-      <MudGrid Spacing="2">
-        @foreach (var image in Images)
+    @if (_reservaSeleccionada != null)
+    {
+      <MudText Class="mb-2"><strong>Socio:</strong> @_reservaSeleccionada.ApellidoNombre</MudText>
+      <MudText Class="mb-4"><strong>DNI:</strong> @_reservaSeleccionada.Dni</MudText>
 
-        {
-          <MudItem xs="6" sm="4" md="3" lg="2">
-            <MudCard Class="image-card">
-              <MudLink Href="@image" Target="blank">
-                <MudCardMedia Image="@image" Alt="Image" Class="image" />
-              </MudLink>
-              @* <MudCardMedia Image="@image" Alt="Image" Class="image" @onclick="() => NavigateToImage(image)"/> *@
-            </MudCard>
-          </MudItem>
-        }
-      </MudGrid>
-    </MudContainer>
+      <MudDivider Class="mb-4" />
+
+      <MudTable Items="@_reservaSeleccionada.Beneficiarios" Hover="true" Striped="true" Dense="true"
+        T="DetalleBeneficiario">
+        <HeaderContent>
+          <MudTh>Código</MudTh>
+          <MudTh>Nombre</MudTh>
+          <MudTh>Artículo (Mochila)</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+          <MudTd DataLabel="Código">@context.CodigoFliar</MudTd>
+          <MudTd DataLabel="Nombre">@context.NombreBeneficiario</MudTd>
+          <MudTd DataLabel="Artículo">
+            <MudChip T="string" Color="Color.Secondary" Size="Size.Small">@context.Articulo</MudChip>
+          </MudTd>
+        </RowTemplate>
+      </MudTable>
+    }
   </DialogContent>
   <DialogActions>
-    <MudButton Color="Color.Primary" OnClick="CerrarDialogo">Cerrar</MudButton>
+    <MudButton Variant="Variant.Outlined" OnClick="CerrarDialogoBeneficiarios">
+      Cerrar
+    </MudButton>
   </DialogActions>
 </MudDialog>
 
-<MudSwitch @bind-Value="_hidePosition" Color="Color.Primary">Hide <b>position</b> when Breakpoint=Xs</MudSwitch>
-<MudSwitch @bind-Value="_loading" Color="Color.Primary">Show Loading</MudSwitch>
-
-<style>
-  .image-card {
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-  }
-
-  .image {
-    width: 200px;
-    height: 200px;
-  @* aspect-ratio: 1 / 1; *@ @* object-fit: cover; *@
-  }
-</style>
+@* Diálogo de confirmación de aprobación *@
+<MudDialog @bind-Visible="_dialogConfirmacionVisible">
+  <TitleContent>
+    <MudText Typo="Typo.h6">
+      <MudIcon Icon="@(_esAprobacion? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+        Color="@(_esAprobacion ? Color.Success : Color.Error)" Class="mr-2" />
+      @(_esAprobacion ? "Confirmar Aprobación" : "Confirmar Rechazo")
+    </MudText>
+  </TitleContent>
+  <DialogContent>
+    <MudText>
+      ¿Está seguro que desea <strong>@(_esAprobacion ? "APROBAR" : "RECHAZAR")</strong> la reserva
+      <strong>#@_reservaSeleccionada?.NroReserva</strong> del socio
+      <strong>@_reservaSeleccionada?.ApellidoNombre</strong>?
+    </MudText>
+  </DialogContent>
+  <DialogActions>
+    <MudButton Variant="Variant.Outlined" OnClick="CerrarDialogoConfirmacion">Cancelar</MudButton>
+    <MudButton Variant="Variant.Filled" Color="@(_esAprobacion? Color.Success: Color.Error)" OnClick="EjecutarAccion">
+      @(_esAprobacion ? "Sí, Aprobar" : "Sí, Rechazar")
+    </MudButton>
+  </DialogActions>
+</MudDialog>
 
 @code {
-  private bool _dialogOpen = false; // Para controlar el estado del diálogo
+  private bool _loading = true;
+  private List<ReservaPendiente>? _reservasPendientes;
+  private ReservaPendiente? _reservaSeleccionada;
+  private List<string>? _archivosAdjuntos;
 
-  private bool _dialogOpenDoc = false; // Para controlar el estado del diálogo
-  private List<DetalleReserva> detallesReserva = new List<DetalleReserva>();
-  private bool _hidePosition;
-  private bool _loading;
-  @* private IEnumerable<Element> Elements = new List<Element>(); *@
-  private IEnumerable<Reserva> Elements = new List<Reserva>();
+  // Diálogos
+  private bool _dialogDocumentosVisible = false;
+  private bool _dialogBeneficiariosVisible = false;
+  private bool _dialogConfirmacionVisible = false;
+  private bool _esAprobacion = true;
 
-
-
-  private void AprobarReserva()
+  private DialogOptions _dialogOptions = new DialogOptions
   {
+    MaxWidth = MaxWidth.Large,
+    FullWidth = true,
+    CloseButton = true
+  };
 
-    Snackbar.Add("Aprobado", Severity.Success);
-
-    Console.WriteLine("Aprobado");
-
-  }
-
-  private void RechazarReserva()
-  {
-
-    Snackbar.Add("Rechazado", Severity.Error);
-
-    Console.WriteLine("Rechazado");
-
-  }
-
-
-
-  private List<string> Images = new()
-    {
-  @* "http://secbanda.com.ar:8080/api/v1/download/imagen.jpeg", *@
-        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
-        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
-        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
-        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
-        "https://www.lavanguardia.com/andro4all/hero/2017/07/Google-App-Android.jpg?width=768&aspect_ratio=16:9&format=nowebp",
-    };
-
-  private void NavigateToImage(string imageUrl)
-  {
-    @* Navigation.NavigateTo($"/image-viewer?image={Uri.EscapeDataString(imageUrl)}"); *@
-    Navigation.NavigateTo(Uri.EscapeDataString(imageUrl));
-  }
-
-  // Método que se llama al hacer click en "Mostrar"
-
-  private void MostrarDetalles()
-  {
-
-    // Aquí puedes poblar detalles adicionales de la reserva (puedes simular una llamada a la API si es necesario)
-
-    detallesReserva = new List<DetalleReserva>
-
-    {
-      @* new DetalleReserva { Nombre = reserva.ApellidoYNombres, Fecha = reserva.FechaReserva } *@
-    };
-
-
-
-    // Abrir el diálogo
-
-    _dialogOpen = true;
-  }
-
-  // Método que se llama al hacer click en "Cerrar"
-  private void CerrarDialogo()
-  {
-
-    _dialogOpen = false;
-  }
-
-  // Métodos de acción para los botones
-  private void VerReserva()
-  {
-
-    // Aquí puedes agregar la lógica para ver la reserva
-
-    detallesReserva = new List<DetalleReserva>
-
-    {
-      @* new DetalleReserva { Nombre = reserva.ApellidoYNombres, Fecha = reserva.FechaReserva } *@
-    };
-
-
-
-    // Abrir el diálogo
-
-    _dialogOpenDoc = true;
-    @* Console.WriteLine($"Ver Reserva: {reserva.NroReserva}"); *@
-  }
-
-  private void AprobarReserva(Reserva reserva)
-  {
-
-    // Aquí puedes agregar la lógica para aprobar la reserva
-
-    Console.WriteLine($"Aprobar Reserva: {reserva.NroReserva}");
-  }
-
-
-
-
-
-  // Clase para representar el detalle de la reserva (para la tabla del diálogo)
-
-  public class DetalleReserva
-
-  {
-
-    public string Nombre { get; set; }
-
-    public DateTime Fecha { get; set; }
-
-  }
   protected override async Task OnInitializedAsync()
   {
-    @* Elements = await httpClient.GetFromJsonAsync<List<Element>>("webapi/periodictable"); *@
-    @* Elements = ElementData.GetSampleElements(); *@
-    Elements = DatosDeMuestra.ObtenerReservas();
+    Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+    await CargarReservas();
   }
 
-
-
-  public class Reserva
+  private async Task CargarReservas()
   {
+    _loading = true;
+    StateHasChanged();
 
-    public int NroReserva { get; set; } // Número de reserva
-
-    public DateTime FechaReserva { get; set; } // Fecha de reserva
-
-    public string ApellidoYNombres { get; set; } // Apellido y nombre del socio
-
-
-    // Constructor
-
-    public Reserva(int nroReserva, DateTime fechaReserva, string apellidoYNombres)
+    try
     {
-
-      NroReserva = nroReserva;
-
-      FechaReserva = fechaReserva;
-
-      ApellidoYNombres = apellidoYNombres;
-
+      _reservasPendientes = await SindicatoService.GetReservasPendientesAprobacion();
     }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error al cargar reservas: {ex.Message}", Severity.Error);
+      _reservasPendientes = new List<ReservaPendiente>();
+    }
+
+    _loading = false;
+    StateHasChanged();
   }
 
-  // Clase estática para obtener datos de muestra
-  public static class DatosDeMuestra
+  private async Task VerDocumentos(ReservaPendiente reserva)
   {
-
-    public static List<Reserva> ObtenerReservas()
-
-    {
-
-      return new List<Reserva>
-            {
-                new Reserva(101, new DateTime(2025, 2, 18), "Pérez, Juan"),
-                new Reserva(102, new DateTime(2025, 2, 19), "Gómez, Ana"),
-                new Reserva(103, new DateTime(2025, 2, 20), "Rodríguez, Luis"),
-                new Reserva(104, new DateTime(2025, 2, 21), "Fernández, María"),
-                new Reserva(105, new DateTime(2025, 2, 22), "Martínez, Pedro")
-            };
-
-    }
+    _reservaSeleccionada = reserva;
+    _archivosAdjuntos = await SindicatoService.GetArchivosAdjuntosReserva(reserva.NroReserva, reserva.CuilSocio);
+    _dialogDocumentosVisible = true;
   }
 
+  private void VerBeneficiarios(ReservaPendiente reserva)
+  {
+    _reservaSeleccionada = reserva;
+    _dialogBeneficiariosVisible = true;
+  }
+
+  private void ConfirmarAprobacion(ReservaPendiente? reserva)
+  {
+    if (reserva == null) return;
+    _reservaSeleccionada = reserva;
+    _esAprobacion = true;
+    _dialogDocumentosVisible = false;
+    _dialogConfirmacionVisible = true;
+  }
+
+  private void ConfirmarRechazo(ReservaPendiente? reserva)
+  {
+    if (reserva == null) return;
+    _reservaSeleccionada = reserva;
+    _esAprobacion = false;
+    _dialogDocumentosVisible = false;
+    _dialogConfirmacionVisible = true;
+  }
+
+  private async Task EjecutarAccion()
+  {
+    if (_reservaSeleccionada == null) return;
+
+    bool resultado;
+    if (_esAprobacion)
+    {
+      resultado = await SindicatoService.AprobarReserva(_reservaSeleccionada.NroReserva);
+      if (resultado)
+      {
+        Snackbar.Add($"Reserva #{_reservaSeleccionada.NroReserva} APROBADA correctamente", Severity.Success);
+      }
+      else
+      {
+        Snackbar.Add("Error al aprobar la reserva", Severity.Error);
+      }
+    }
+    else
+    {
+      resultado = await SindicatoService.RechazarReserva(_reservaSeleccionada.NroReserva);
+      if (resultado)
+      {
+        Snackbar.Add($"Reserva #{_reservaSeleccionada.NroReserva} RECHAZADA", Severity.Warning);
+      }
+      else
+      {
+        Snackbar.Add("Error al rechazar la reserva", Severity.Error);
+      }
+    }
+
+    CerrarDialogoConfirmacion();
+    await CargarReservas();
+  }
+
+  private void CerrarDialogoDocumentos()
+  {
+    _dialogDocumentosVisible = false;
+    _reservaSeleccionada = null;
+    _archivosAdjuntos = null;
+  }
+
+  private void CerrarDialogoBeneficiarios()
+  {
+    _dialogBeneficiariosVisible = false;
+  }
+
+  private void CerrarDialogoConfirmacion()
+  {
+    _dialogConfirmacionVisible = false;
+  }
 }
